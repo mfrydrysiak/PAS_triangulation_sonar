@@ -15,7 +15,6 @@
 
 #define MAX_DATA        600
 #define SILENCE_SIGNAL  160
-#define SENSOR_OFFSET   0.01175
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -54,12 +53,13 @@ void MainWindow::sendAngleToSTM()
 void MainWindow::readSerialData()
 {
     static Echo         echo; 
-    static quint32      x = 0;
+    static quint16      x = 0;
     static quint16      adc_val;
     static bool         first_cross_adc_up = false,
                         first_cross_adc_down = false,
                         second_cross_adc_up = false,
                         second_cross_adc_down = false;
+
 
     while (stm32_serial->canReadLine())
     {
@@ -70,33 +70,7 @@ void MainWindow::readSerialData()
         {
             adc_val = serialBuffer.toUInt();
 
-            if (adc_val > threshold_value && first_cross_adc_up == false && first_cross_adc_down == false &&
-                    second_cross_adc_up == false && second_cross_adc_down == false)
-            {
-                first_cross_adc_up = true;
-                t1 = x;
-            }
-
-            else if (adc_val < threshold_value && first_cross_adc_up == true && first_cross_adc_down == false &&
-                    second_cross_adc_up == false && second_cross_adc_down == false)
-            {
-                first_cross_adc_down = true;
-            }
-
-            else if (adc_val > threshold_value && first_cross_adc_up == true && first_cross_adc_down == true &&
-                    second_cross_adc_up == false && second_cross_adc_down == false && x > SILENCE_SIGNAL)
-            {
-                second_cross_adc_up = true;
-                echo.setEchoDetTime(x);
-                dt = x - t1;
-            }
-
-            else if (adc_val < threshold_value && first_cross_adc_up == true && first_cross_adc_down == true &&
-                     second_cross_adc_up == true && second_cross_adc_down == false && x > SILENCE_SIGNAL)
-            {
-                second_cross_adc_down = true;
-                echo.setEchoEndTime(x);
-            }
+            echo.processSignal(adc_val, x, threshold_value);
 
             x++;
 
@@ -273,54 +247,49 @@ void MainWindow::drawDataOnMap(Echo echoCpy)
     ui->sonarMap->graph(1)->setScatterStyle(QCPScatterStyle::ssCircle);
     ui->sonarMap->graph(1)->setLineStyle(QCPGraph::lsNone);
 
-    double dystans, dystans_x, dystans_y;
-    dystans = (343*(dt*0.000025))/2;
+    short detObjNum = echoCpy.getNumberOfObjects();
+    double *detectionPoints = echoCpy.calculateDetectionPoints(mbSonar);
 
-    if (mbSonar.wybrany_czujnik == lewy)
+    if (dystans_y_max < echoCpy.getYmax())
+        dystans_y_max = echoCpy.getYmax();
+
+    if (dystans_x_min > echoCpy.getXmin())
+        dystans_x_min = echoCpy.getXmin();
+
+    if (dystans_x_max < echoCpy.getXmax())
+        dystans_x_max = echoCpy.getXmax();
+
+    short index = 0;
+
+    for (short echoNum = 0; echoNum < (detObjNum * 2); echoNum += 2)
     {
-        dystans_y = cos(mbSonar.angle*3.1415/180) * dystans + SENSOR_OFFSET * sin(mbSonar.angle*3.1415/180);
-        dystans_x = sin(mbSonar.angle*3.1415/180) * dystans - SENSOR_OFFSET * cos(mbSonar.angle*3.1415/180);
-        ui->lcd_left->display(dystans);
-    }
-    else
-    {
-        dystans_y = cos(mbSonar.angle*3.1415/180) * dystans - SENSOR_OFFSET * sin(mbSonar.angle*3.1415/180);
-        dystans_x = sin(mbSonar.angle*3.1415/180) * dystans + SENSOR_OFFSET * cos(mbSonar.angle*3.1415/180);
-        ui->lcd_right->display(dystans);
-    }
-
-    if (dystans_y_max < dystans_y)
-        dystans_y_max = dystans_y;
-
-    if (dystans_x_min > dystans_x)
-        dystans_x_min = dystans_x;
-
-    if (dystans_x_max < dystans_x)
-        dystans_x_max = dystans_x;
-
-
-    if (ui->rBtn_TOF_scan->isChecked())
-    {
-        if (mbSonar.wybrany_czujnik == lewy)
-            ui->sonarMap->graph(0)->addData(dystans_x, dystans_y);
-        else
-            ui->sonarMap->graph(1)->addData(dystans_x, dystans_y);
-    }
-    else if (ui->rBtn_PAS_scan->isChecked())
-    {
-        float offset = 0.02;
-
-        for (unsigned int i = 0; i < echoCpy.first_echo_samples_no; i++)
+        if (ui->rBtn_TOF_scan->isChecked())
         {
             if (mbSonar.wybrany_czujnik == lewy)
-                ui->sonarMap->graph(0)->addData(dystans_x, dystans_y);
+                ui->sonarMap->graph(0)->addData(detectionPoints[echoNum], detectionPoints[echoNum + 1]);
             else
-                ui->sonarMap->graph(1)->addData(dystans_x, dystans_y);
-
-            dystans_y += cos(mbSonar.angle*3.1415/180) * offset;
-            if (abs(mbSonar.angle) > 0.001)
-                dystans_x += sin(mbSonar.angle*3.1415/180) * offset;
+                ui->sonarMap->graph(1)->addData(detectionPoints[echoNum], detectionPoints[echoNum + 1]);
         }
+        else if (ui->rBtn_PAS_scan->isChecked())
+        {
+            float offset = 0.02;
+            double dystans_y_cpy, dystans_x_cpy;
+            dystans_x_cpy = detectionPoints[echoNum];
+            dystans_y_cpy = detectionPoints[echoNum + 1];
+
+            for (short i = 0; i < echoCpy.getEchoStrengthValue(index); i++)
+            {
+                if (mbSonar.wybrany_czujnik == lewy)
+                    ui->sonarMap->graph(0)->addData(dystans_x_cpy, dystans_y_cpy);
+                else
+                    ui->sonarMap->graph(1)->addData(dystans_x_cpy, dystans_y_cpy);
+
+                dystans_y_cpy += cos(mbSonar.angle*3.1415/180) * offset;
+                if (abs(mbSonar.angle) > 0.001)
+                    dystans_x_cpy += sin(mbSonar.angle*3.1415/180) * offset;
+            }
+        }
+        index++;
     }
 
     ui->sonarMap->graph(0)->rescaleAxes(true);
