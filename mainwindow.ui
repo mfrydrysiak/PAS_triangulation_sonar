@@ -307,8 +307,8 @@
               <property name="title">
                <string>Active sensor</string>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_10">
-               <item>
+              <layout class="QFormLayout" name="formLayout_5">
+               <item row="0" column="0">
                 <widget class="QCheckBox" name="cBox_left_sensor">
                  <property name="text">
                   <string>Left sonar</string>
@@ -318,10 +318,30 @@
                  </property>
                 </widget>
                </item>
-               <item>
+               <item row="1" column="0">
                 <widget class="QCheckBox" name="cBox_right_sensor">
                  <property name="text">
                   <string>Right sonar</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QCheckBox" name="lSon_visible">
+                 <property name="text">
+                  <string>Visible</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QCheckBox" name="rSon_visible">
+                 <property name="text">
+                  <string>Visible</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -333,11 +353,34 @@
               <property name="title">
                <string>Algorithm</string>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_11">
-               <item>
+              <layout class="QGridLayout" name="gridLayout">
+               <item row="0" column="0">
                 <widget class="QCheckBox" name="cBox_alg1">
                  <property name="text">
                   <string>Alg1</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QDoubleSpinBox" name="spinBox_alg1">
+                 <property name="maximum">
+                  <double>0.100000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.010000000000000</double>
+                 </property>
+                 <property name="value">
+                  <double>0.050000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QCheckBox" name="alg1_visible">
+                 <property name="text">
+                  <string>Visible</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -452,6 +495,11 @@
   <action name="actionSerial_port">
    <property name="text">
     <string>Serial port</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>

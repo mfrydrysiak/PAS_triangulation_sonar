@@ -23,6 +23,7 @@ public:
     czujnik     wybrany_czujnik;
     _tryb_pracy tryb_pracy;
     _algorithm  algorithm;
+    double      alg1_radius;
     float       angleStep;
     float       angle;
     float       maxAngle;

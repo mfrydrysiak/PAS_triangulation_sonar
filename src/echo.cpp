@@ -53,14 +53,23 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
         for (short i = 0; i < 10; i++) {
             detDistanceAlg1_left[i] = 0;
             detDistanceAlg1_leftSamplesNo = 0;
+            detDistanceAlg1_leftEchoStrength[i] = 0;
             detDistanceAlg1_right[i] = 0;
             detDistanceAlg1_rightSamplesNo = 0;
+            detDistanceAlg1_rightEchoStrength[i] = 0;
 
             detDistanceAlg1[i] = 0;
+            detDistanceAlg1_Strength[i] = 0;
         }
 
     for (short echoIndex = 0; echoIndex < objNum; echoIndex++) {
         echoStrengthValues[echoIndex] = calculateEchoStrength(echoEndTab[echoIndex] - echoStartTab[echoIndex]);
+
+        if (mySensor.wybrany_czujnik == lewy)
+            detDistanceAlg1_leftEchoStrength[echoIndex] = echoStrengthValues[echoIndex];
+        else
+            detDistanceAlg1_rightEchoStrength[echoIndex] = echoStrengthValues[echoIndex];
+
         dt = echoEndTab[echoIndex] - waveGenerationTime;
         dystans[echoIndex] = (343*(dt*0.000025))/2;
     }
@@ -84,8 +93,10 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
             short index_alg1 = 0;
             for (int j = 0; j < detDistanceAlg1_rightSamplesNo; j++)
                 for (int k = 0; k < detDistanceAlg1_leftSamplesNo; k++) {
-                    if (abs(detDistanceAlg1_right[j] - detDistanceAlg1_left[k]) < ALG1_DIST) {
+                    if (abs(detDistanceAlg1_right[j] - detDistanceAlg1_left[k]) < mySensor.alg1_radius) {
                         detDistanceAlg1[index_alg1] = ((detDistanceAlg1_right[j] + detDistanceAlg1_left[k]) / 2);
+                        detDistanceAlg1_Strength[index_alg1] = static_cast<short>((detDistanceAlg1_rightEchoStrength[j] +
+                                                                                   detDistanceAlg1_leftEchoStrength[k]) / 2);
                         index_alg1++;
                     }
                 }

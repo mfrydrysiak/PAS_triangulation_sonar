@@ -43,6 +43,7 @@ class Ui_MainWindow
 public:
     QAction *actionConnect;
     QAction *actionSerial_port;
+    QAction *actionExit;
     QWidget *centralWidget;
     QVBoxLayout *verticalLayout;
     QHBoxLayout *horizontalLayout_4;
@@ -81,12 +82,16 @@ public:
     QLabel *label_6;
     QLCDNumber *lcd_right;
     QGroupBox *groupBox_6;
-    QVBoxLayout *verticalLayout_10;
+    QFormLayout *formLayout_5;
     QCheckBox *cBox_left_sensor;
     QCheckBox *cBox_right_sensor;
+    QCheckBox *lSon_visible;
+    QCheckBox *rSon_visible;
     QGroupBox *groupBox_8;
-    QVBoxLayout *verticalLayout_11;
+    QGridLayout *gridLayout;
     QCheckBox *cBox_alg1;
+    QDoubleSpinBox *spinBox_alg1;
+    QCheckBox *alg1_visible;
     QGroupBox *groupBox_2;
     QVBoxLayout *verticalLayout_8;
     QVBoxLayout *verticalLayout_7;
@@ -110,6 +115,8 @@ public:
         actionConnect->setObjectName(QStringLiteral("actionConnect"));
         actionSerial_port = new QAction(MainWindow);
         actionSerial_port->setObjectName(QStringLiteral("actionSerial_port"));
+        actionExit = new QAction(MainWindow);
+        actionExit->setObjectName(QStringLiteral("actionExit"));
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -328,34 +335,60 @@ public:
 
         groupBox_6 = new QGroupBox(tabScan);
         groupBox_6->setObjectName(QStringLiteral("groupBox_6"));
-        verticalLayout_10 = new QVBoxLayout(groupBox_6);
-        verticalLayout_10->setSpacing(6);
-        verticalLayout_10->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_10->setObjectName(QStringLiteral("verticalLayout_10"));
+        formLayout_5 = new QFormLayout(groupBox_6);
+        formLayout_5->setSpacing(6);
+        formLayout_5->setContentsMargins(11, 11, 11, 11);
+        formLayout_5->setObjectName(QStringLiteral("formLayout_5"));
         cBox_left_sensor = new QCheckBox(groupBox_6);
         cBox_left_sensor->setObjectName(QStringLiteral("cBox_left_sensor"));
         cBox_left_sensor->setChecked(true);
 
-        verticalLayout_10->addWidget(cBox_left_sensor);
+        formLayout_5->setWidget(0, QFormLayout::LabelRole, cBox_left_sensor);
 
         cBox_right_sensor = new QCheckBox(groupBox_6);
         cBox_right_sensor->setObjectName(QStringLiteral("cBox_right_sensor"));
 
-        verticalLayout_10->addWidget(cBox_right_sensor);
+        formLayout_5->setWidget(1, QFormLayout::LabelRole, cBox_right_sensor);
+
+        lSon_visible = new QCheckBox(groupBox_6);
+        lSon_visible->setObjectName(QStringLiteral("lSon_visible"));
+        lSon_visible->setChecked(true);
+
+        formLayout_5->setWidget(0, QFormLayout::FieldRole, lSon_visible);
+
+        rSon_visible = new QCheckBox(groupBox_6);
+        rSon_visible->setObjectName(QStringLiteral("rSon_visible"));
+        rSon_visible->setChecked(true);
+
+        formLayout_5->setWidget(1, QFormLayout::FieldRole, rSon_visible);
 
 
         formLayout_3->setWidget(2, QFormLayout::FieldRole, groupBox_6);
 
         groupBox_8 = new QGroupBox(tabScan);
         groupBox_8->setObjectName(QStringLiteral("groupBox_8"));
-        verticalLayout_11 = new QVBoxLayout(groupBox_8);
-        verticalLayout_11->setSpacing(6);
-        verticalLayout_11->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_11->setObjectName(QStringLiteral("verticalLayout_11"));
+        gridLayout = new QGridLayout(groupBox_8);
+        gridLayout->setSpacing(6);
+        gridLayout->setContentsMargins(11, 11, 11, 11);
+        gridLayout->setObjectName(QStringLiteral("gridLayout"));
         cBox_alg1 = new QCheckBox(groupBox_8);
         cBox_alg1->setObjectName(QStringLiteral("cBox_alg1"));
 
-        verticalLayout_11->addWidget(cBox_alg1);
+        gridLayout->addWidget(cBox_alg1, 0, 0, 1, 1);
+
+        spinBox_alg1 = new QDoubleSpinBox(groupBox_8);
+        spinBox_alg1->setObjectName(QStringLiteral("spinBox_alg1"));
+        spinBox_alg1->setMaximum(0.1);
+        spinBox_alg1->setSingleStep(0.01);
+        spinBox_alg1->setValue(0.05);
+
+        gridLayout->addWidget(spinBox_alg1, 0, 1, 1, 1);
+
+        alg1_visible = new QCheckBox(groupBox_8);
+        alg1_visible->setObjectName(QStringLiteral("alg1_visible"));
+        alg1_visible->setChecked(true);
+
+        gridLayout->addWidget(alg1_visible, 0, 2, 1, 1);
 
 
         formLayout_3->setWidget(1, QFormLayout::FieldRole, groupBox_8);
@@ -462,6 +495,7 @@ public:
         actionConnect->setToolTip(QApplication::translate("MainWindow", "Connect to the uC", 0));
 #endif // QT_NO_TOOLTIP
         actionSerial_port->setText(QApplication::translate("MainWindow", "Serial port", 0));
+        actionExit->setText(QApplication::translate("MainWindow", "Exit", 0));
         connectBtn->setText(QApplication::translate("MainWindow", "Connect", 0));
         groupBox_4->setTitle(QApplication::translate("MainWindow", "Single measurement", 0));
         groupBox_3->setTitle(QApplication::translate("MainWindow", "Parameters", 0));
@@ -482,8 +516,11 @@ public:
         groupBox_6->setTitle(QApplication::translate("MainWindow", "Active sensor", 0));
         cBox_left_sensor->setText(QApplication::translate("MainWindow", "Left sonar", 0));
         cBox_right_sensor->setText(QApplication::translate("MainWindow", "Right sonar", 0));
+        lSon_visible->setText(QApplication::translate("MainWindow", "Visible", 0));
+        rSon_visible->setText(QApplication::translate("MainWindow", "Visible", 0));
         groupBox_8->setTitle(QApplication::translate("MainWindow", "Algorithm", 0));
         cBox_alg1->setText(QApplication::translate("MainWindow", "Alg1", 0));
+        alg1_visible->setText(QApplication::translate("MainWindow", "Visible", 0));
         tabWidget->setTabText(tabWidget->indexOf(tabScan), QApplication::translate("MainWindow", "Scan", 0));
         groupBox_2->setTitle(QApplication::translate("MainWindow", "Sonar map", 0));
         groupBox->setTitle(QApplication::translate("MainWindow", "Analog voltage envelope", 0));

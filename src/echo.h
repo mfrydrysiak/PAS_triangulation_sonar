@@ -26,6 +26,8 @@ private:
     double          detDistanceAlg1_right[10];
     short           detDistanceAlg1_leftSamplesNo;
     short           detDistanceAlg1_rightSamplesNo;
+    short           detDistanceAlg1_leftEchoStrength[10];
+    short           detDistanceAlg1_rightEchoStrength[10];
     bool            transducerActive;
     bool            signalGenerationFinished;
     bool            echoDetection;
@@ -49,6 +51,7 @@ public:
     unsigned int    first_echo_samples_no;
     unsigned int    delta_time;
     double          detDistanceAlg1[10];
+    short           detDistanceAlg1_Strength[10];
 
 };
 

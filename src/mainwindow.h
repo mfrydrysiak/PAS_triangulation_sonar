@@ -39,6 +39,10 @@ private slots:
 
     void contexMenu_setBothSonarsInvisible();
     void contexMenu_setBothSonarsVisible();
+    void contexMenu_setLeftSonarInvisible();
+    void contexMenu_setLeftSonarVisible();
+    void contexMenu_setRightSonarInvisible();
+    void contexMenu_setRightSonarVisible();
 
     void on_scanBtn_clicked();
 
@@ -51,6 +55,14 @@ private slots:
     void on_cBox_right_sensor_stateChanged(int arg1);
 
     void on_cBox_alg1_stateChanged(int arg1);
+
+    void on_spinBox_alg1_valueChanged(double arg1);
+
+    void on_lSon_visible_stateChanged(int arg1);
+
+    void on_rSon_visible_stateChanged(int arg1);
+
+    void on_alg1_visible_stateChanged(int arg1);
 
 private:
     Ui::MainWindow *ui;

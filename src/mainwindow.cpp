@@ -104,6 +104,7 @@ void MainWindow::readSerialData()
             {
                 ui->sonarMap->graph(0)->clearData();
                 ui->sonarMap->graph(1)->clearData();
+                ui->sonarMap->graph(2)->clearData();
 
                 float angle_tmp = mbSonar.angle;
                 mbSonar.angle = 0;
@@ -127,6 +128,7 @@ void MainWindow::readSerialData()
                 {
                     ui->sonarMap->graph(0)->clearData();
                     ui->sonarMap->graph(1)->clearData();
+                    ui->sonarMap->graph(2)->clearData();
                 }
 
                 float angle_tmp = mbSonar.angle;
@@ -292,13 +294,33 @@ void MainWindow::drawDataOnMap(Echo *echo)
     /* Algorithm 1
      * The computations are performed here, not in the 'echo' object
      */
-    if (mbSonar.algorithm == alg1 && mbSonar.wybrany_czujnik == prawy) {
+    if (mbSonar.algorithm == alg1 && mbSonar.wybrany_czujnik == prawy && ui->rBtn_TOF_scan->isChecked()) {
         short alg1_index = 0;
         double alg1_dystans_xy[2];
         while (echo->detDistanceAlg1[alg1_index] > 0.01) {
             alg1_dystans_xy[1] = cos(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
             alg1_dystans_xy[0] = sin(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
             ui->sonarMap->graph(2)->addData(alg1_dystans_xy[0], alg1_dystans_xy[1]);
+            alg1_index++;
+        }
+    }
+    else if (mbSonar.algorithm == alg1 && mbSonar.wybrany_czujnik == prawy && ui->rBtn_PAS_scan->isChecked()) {
+        short alg1_index = 0;
+        double alg1_dystans_xy[2];
+        float offset = 0.02;
+
+        while (echo->detDistanceAlg1[alg1_index] > 0.01) {
+
+            alg1_dystans_xy[0] = sin(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
+            alg1_dystans_xy[1] = cos(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
+
+            for (short i = 0; i < echo->detDistanceAlg1_Strength[alg1_index]; i++) {
+                ui->sonarMap->graph(2)->addData(alg1_dystans_xy[0], alg1_dystans_xy[1]);
+                alg1_dystans_xy[1] += cos(mbSonar.angle*3.1415/180) * offset;
+                if (abs(mbSonar.angle) > 0.001)
+                    alg1_dystans_xy[0] += sin(mbSonar.angle*3.1415/180) * offset;
+            }
+
             alg1_index++;
         }
     }
@@ -389,6 +411,8 @@ void MainWindow::on_scanBtn_clicked()
     {
         currentMeasurementType = scan;
         ui->sonarMap->graph(0)->clearData();
+        ui->sonarMap->graph(1)->clearData();
+        ui->sonarMap->graph(2)->clearData();
         ui->sonarSignal->graph(0)->clearData();
         if (mbSonar.wybrany_czujnik == prawy)
             stm32_serial->write("cr");
@@ -522,6 +546,8 @@ void MainWindow::on_cBox_alg1_stateChanged(int arg1)
     }
 }
 
+//////////////////////////////////////////////////////////////////
+/// Mouse - context menu
 void MainWindow::contexMenu_setBothSonarsInvisible()
 {
     ui->sonarMap->graph(0)->setVisible(false);
@@ -536,13 +562,79 @@ void MainWindow::contexMenu_setBothSonarsVisible()
     ui->sonarMap->replot();
 }
 
+void MainWindow::contexMenu_setLeftSonarInvisible()
+{
+    ui->sonarMap->graph(0)->setVisible(false);
+    ui->sonarMap->replot();
+}
+
+void MainWindow::contexMenu_setLeftSonarVisible()
+{
+    ui->sonarMap->graph(0)->setVisible(true);
+    ui->sonarMap->replot();
+}
+
+void MainWindow::contexMenu_setRightSonarInvisible()
+{
+    ui->sonarMap->graph(1)->setVisible(false);
+    ui->sonarMap->replot();
+}
+
+void MainWindow::contexMenu_setRightSonarVisible()
+{
+    ui->sonarMap->graph(1)->setVisible(true);
+    ui->sonarMap->replot();
+}
+/// Mouse - context menu
+//////////////////////////////////////////////////////////////////
+
 void MainWindow::contextMenuRequest(QPoint pos)
 {
     QMenu *contextMenu = new QMenu(this);
     contextMenu->setAttribute(Qt::WA_DeleteOnClose);
 
-    contextMenu->addAction("Hide data", this, SLOT(contexMenu_setBothSonarsInvisible()));
-    contextMenu->addAction("Show data", this, SLOT(contexMenu_setBothSonarsVisible()));
+    contextMenu->addAction("Hide data from both sensors", this, SLOT(contexMenu_setBothSonarsInvisible()));
+    contextMenu->addAction("Show data from both sensors", this, SLOT(contexMenu_setBothSonarsVisible()));
+    contextMenu->addAction("Hide data from left sensor", this, SLOT(contexMenu_setLeftSonarInvisible()));
+    contextMenu->addAction("Show data from left sensor", this, SLOT(contexMenu_setLeftSonarVisible()));
+    contextMenu->addAction("Hide data from right sensor", this, SLOT(contexMenu_setLeftSonarInvisible()));
+    contextMenu->addAction("Show data from right sensor", this, SLOT(contexMenu_setLeftSonarVisible()));
 
     contextMenu->popup(ui->sonarMap->mapToGlobal(pos));
+}
+
+void MainWindow::on_spinBox_alg1_valueChanged(double arg1)
+{
+    mbSonar.alg1_radius = arg1;
+}
+
+
+void MainWindow::on_lSon_visible_stateChanged(int arg1)
+{
+    if (ui->lSon_visible->isChecked())
+        ui->sonarMap->graph(0)->setVisible(true);
+    else
+        ui->sonarMap->graph(0)->setVisible(false);
+
+    ui->sonarMap->replot();
+}
+
+void MainWindow::on_rSon_visible_stateChanged(int arg1)
+{
+    if (ui->rSon_visible->isChecked())
+        ui->sonarMap->graph(1)->setVisible(true);
+    else
+        ui->sonarMap->graph(1)->setVisible(false);
+
+    ui->sonarMap->replot();
+}
+
+void MainWindow::on_alg1_visible_stateChanged(int arg1)
+{
+    if (ui->alg1_visible->isChecked())
+        ui->sonarMap->graph(2)->setVisible(true);
+    else
+        ui->sonarMap->graph(2)->setVisible(false);
+
+    ui->sonarMap->replot();
 }
