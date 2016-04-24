@@ -12,18 +12,22 @@ TARGET = sonar_app
 TEMPLATE = app
 
 
-SOURCES +=  main.cpp\
-            mainwindow.cpp \
-            qcustomplot.cpp \
-    settingsserialdialog.cpp \
-    echo.cpp \
-    sensor.cpp
+SOURCES +=  src/main.cpp\
+            src/mainwindow.cpp \
+            src/qcustomplot.cpp \
+    src/settingsserialdialog.cpp \
+    src/echo.cpp \
+    src/sensor.cpp
 
-HEADERS  += mainwindow.h \
-            qcustomplot.h \
-    settingsserialdialog.h \
-    echo.h \
-    sensor.h
+HEADERS  += src/mainwindow.h \
+            src/qcustomplot.h \
+    src/settingsserialdialog.h \
+    src/echo.h \
+    src/sensor.h
 
 FORMS    += mainwindow.ui \
     settingsserialdialog.ui
+
+
+
+
