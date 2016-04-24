@@ -26,7 +26,7 @@ public:
 private slots:
     void sendAngleToSTM();
     void readSerialData();
-    void drawDataOnMap(Echo echoCpy);
+    void drawDataOnMap(Echo *echoCpy);
     void threshold_changed();
 
     void on_actionSerial_port_triggered();
@@ -43,6 +43,8 @@ private slots:
     void on_cBox_left_sensor_stateChanged(int arg1);
 
     void on_cBox_right_sensor_stateChanged(int arg1);
+
+    void on_cBox_alg1_stateChanged(int arg1);
 
 private:
     Ui::MainWindow *ui;

@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mbSonar.tryb_pracy      = pojedynczy;
     mbSonar.wybrany_czujnik = lewy;
+    mbSonar.algorithm       = alg0;
     mbSonar.angle           = -45.0;
     mbSonar.angleStep       = 1.0;
     mbSonar.maxAngle        = 45.0;
@@ -103,7 +104,7 @@ void MainWindow::readSerialData()
 
                 float angle_tmp = mbSonar.angle;
                 mbSonar.angle = 0;
-                drawDataOnMap(echo);
+                drawDataOnMap(&echo);
                 echo.restoreToDefaultEcho();
                 ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
                 ui->sonarMap->xAxis->setRange(-1, 1);
@@ -127,7 +128,7 @@ void MainWindow::readSerialData()
 
                 float angle_tmp = mbSonar.angle;
                 mbSonar.angle = 0;
-                drawDataOnMap(echo);
+                drawDataOnMap(&echo);
                 echo.restoreToDefaultEcho();
                 ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
                 ui->sonarMap->xAxis->setRange(-1, 1);
@@ -148,7 +149,7 @@ void MainWindow::readSerialData()
             /* Skanowanie jednym czujnikiem */
             if (mbSonar.tryb_pracy == pojedynczy)
             {
-                drawDataOnMap(echo);
+                drawDataOnMap(&echo);
                 echo.restoreToDefaultEcho();
                 ui->sonarMap->xAxis->setRange(dystans_x_min * 1.1, dystans_x_max * 1.1);
                 ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
@@ -186,7 +187,7 @@ void MainWindow::readSerialData()
             /* Skanowanie dwoma czujnikami */
             if (mbSonar.tryb_pracy == podwojny)
             {
-                drawDataOnMap(echo);
+                drawDataOnMap(&echo);
                 echo.restoreToDefaultEcho();
                 ui->sonarMap->xAxis->setRange(dystans_x_min * 1.1, dystans_x_max * 1.1);
                 ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
@@ -226,7 +227,7 @@ void MainWindow::readSerialData()
     }
 }
 
-void MainWindow::drawDataOnMap(Echo echoCpy)
+void MainWindow::drawDataOnMap(Echo *echo)
 {
     ui->sonarMap->graph(0)->setPen(QPen(Qt::blue));
     ui->sonarMap->graph(0)->setScatterStyle(QCPScatterStyle::ssDisc);
@@ -236,17 +237,21 @@ void MainWindow::drawDataOnMap(Echo echoCpy)
     ui->sonarMap->graph(1)->setScatterStyle(QCPScatterStyle::ssCircle);
     ui->sonarMap->graph(1)->setLineStyle(QCPGraph::lsNone);
 
-    short detObjNum = echoCpy.getNumberOfObjects();
-    double *detectionPoints = echoCpy.calculateDetectionPoints(mbSonar);
+    ui->sonarMap->graph(2)->setPen(QPen(Qt::darkGreen));
+    ui->sonarMap->graph(2)->setScatterStyle(QCPScatterStyle::ssStar);
+    ui->sonarMap->graph(2)->setLineStyle(QCPGraph::lsNone);
 
-    if (dystans_y_max < echoCpy.getYmax())
-        dystans_y_max = echoCpy.getYmax();
+    short detObjNum = echo->getNumberOfObjects();
+    double *detectionPoints = echo->calculateDetectionPoints(mbSonar);
 
-    if (dystans_x_min > echoCpy.getXmin())
-        dystans_x_min = echoCpy.getXmin();
+    if (dystans_y_max < echo->getYmax())
+        dystans_y_max = echo->getYmax();
 
-    if (dystans_x_max < echoCpy.getXmax())
-        dystans_x_max = echoCpy.getXmax();
+    if (dystans_x_min > echo->getXmin())
+        dystans_x_min = echo->getXmin();
+
+    if (dystans_x_max < echo->getXmax())
+        dystans_x_max = echo->getXmax();
 
     short index = 0;
 
@@ -266,7 +271,7 @@ void MainWindow::drawDataOnMap(Echo echoCpy)
             dystans_x_cpy = detectionPoints[echoNum];
             dystans_y_cpy = detectionPoints[echoNum + 1];
 
-            for (short i = 0; i < echoCpy.getEchoStrengthValue(index); i++)
+            for (short i = 0; i < echo->getEchoStrengthValue(index); i++)
             {
                 if (mbSonar.wybrany_czujnik == lewy)
                     ui->sonarMap->graph(0)->addData(dystans_x_cpy, dystans_y_cpy);
@@ -281,6 +286,20 @@ void MainWindow::drawDataOnMap(Echo echoCpy)
         index++;
     }
 
+    /* Algorithm 1
+     * The computations are performed here, not in the 'echo' object
+     */
+    if (mbSonar.algorithm == alg1 && mbSonar.wybrany_czujnik == prawy) {
+        short alg1_index = 0;
+        double alg1_dystans_xy[2];
+        while (echo->detDistanceAlg1[alg1_index] > 0.01) {
+            alg1_dystans_xy[1] = cos(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
+            alg1_dystans_xy[0] = sin(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
+            ui->sonarMap->graph(2)->addData(alg1_dystans_xy[0], alg1_dystans_xy[1]);
+            alg1_index++;
+        }
+    }
+
     ui->sonarMap->graph(0)->rescaleAxes(true);
     ui->sonarMap->replot();
 }
@@ -292,6 +311,9 @@ void MainWindow::drawMap(QCustomPlot *customPlot)
 
     customPlot->addGraph();
     customPlot->graph(1)->setPen(QPen(Qt::red));
+
+    customPlot->addGraph();
+    customPlot->graph(2)->setPen(QPen(Qt::darkGreen));
 
     customPlot->xAxis->setLabel("x");
     customPlot->yAxis->setLabel("y");
@@ -474,5 +496,25 @@ void MainWindow::on_cBox_right_sensor_stateChanged(int arg1)
         mbSonar.tryb_pracy      = podwojny;
         mbSonar.wybrany_czujnik = lewy;         // zarowno dla zaznaczonych dwoch pol, jak i dwoch odznaczonych wykona sie pomiar przy
                                                 // uzyciu dwoch czujnikow; rozpoczyna LEWY
+    }
+}
+
+void MainWindow::on_cBox_alg1_stateChanged(int arg1)
+{
+    if (ui->cBox_alg1->isChecked()) {
+        mbSonar.algorithm = alg1;
+
+        ui->cBox_left_sensor->setChecked(true);
+        ui->cBox_right_sensor->setChecked(true);
+        ui->cBox_left_sensor->setDisabled(true);
+        ui->cBox_right_sensor->setDisabled(true);
+
+        mbSonar.tryb_pracy      = podwojny;
+        mbSonar.wybrany_czujnik = lewy;
+    }
+    else {
+        mbSonar.algorithm = alg0;
+        ui->cBox_left_sensor->setDisabled(false);
+        ui->cBox_right_sensor->setDisabled(false);
     }
 }

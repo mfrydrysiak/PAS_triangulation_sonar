@@ -7,6 +7,9 @@ enum czujnik { lewy  = 0,
 enum _tryb_pracy { pojedynczy = 0,
                    podwojny   = 1  };
 
+enum _algorithm { alg0 = 0,
+                  alg1 = 1  };
+
 class Sensor
 {
 public:
@@ -19,6 +22,7 @@ public:
     /* Zmienne publiczne */
     czujnik     wybrany_czujnik;
     _tryb_pracy tryb_pracy;
+    _algorithm  algorithm;
     float       angleStep;
     float       angle;
     float       maxAngle;

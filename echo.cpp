@@ -2,6 +2,7 @@
 #include "sensor.h"
 
 #define SENSOR_OFFSET   0.01175
+#define ALG1_DIST       0.01
 
 Echo::Echo()
 {
@@ -47,11 +48,50 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
     short dt;
     short index = 0;
 
+    /* Clear table for the algorithm 1 */
+    if (mySensor.wybrany_czujnik == lewy)
+        for (short i = 0; i < 10; i++) {
+            detDistanceAlg1_left[i] = 0;
+            detDistanceAlg1_leftSamplesNo = 0;
+            detDistanceAlg1_right[i] = 0;
+            detDistanceAlg1_rightSamplesNo = 0;
+
+            detDistanceAlg1[i] = 0;
+        }
+
     for (short echoIndex = 0; echoIndex < objNum; echoIndex++) {
         echoStrengthValues[echoIndex] = calculateEchoStrength(echoEndTab[echoIndex] - echoStartTab[echoIndex]);
         dt = echoEndTab[echoIndex] - waveGenerationTime;
         dystans[echoIndex] = (343*(dt*0.000025))/2;
     }
+
+    /* Algorithm 1 - accept neighbours */
+    if (mySensor.algorithm == alg1) {
+        /* Acquire data for the left sensor - max. 10 samples */
+        if (mySensor.wybrany_czujnik == lewy) {
+            for (int i = 0; i < objNum && i < 10; i++) {
+                detDistanceAlg1_left[i] = dystans[i];
+                detDistanceAlg1_leftSamplesNo = i + 1;
+            }
+        }
+        /* Compare data from the right sensor with data from the left one and choose only close samples */
+        else if (mySensor.wybrany_czujnik == prawy) {
+            for (int i = 0; i < objNum && i < 10; i++) {
+                detDistanceAlg1_right[i] = dystans[i];
+                detDistanceAlg1_rightSamplesNo = i + 1;
+            }
+            /* Comparision */
+            short index_alg1 = 0;
+            for (int j = 0; j < detDistanceAlg1_rightSamplesNo; j++)
+                for (int k = 0; k < detDistanceAlg1_leftSamplesNo; k++) {
+                    if (abs(detDistanceAlg1_right[j] - detDistanceAlg1_left[k]) < ALG1_DIST) {
+                        detDistanceAlg1[index_alg1] = ((detDistanceAlg1_right[j] + detDistanceAlg1_left[k]) / 2);
+                        index_alg1++;
+                    }
+                }
+        }
+    }
+
 
     for (short echoIndex = 0; echoIndex < (objNum * 2); echoIndex += 2) {
         if (mySensor.wybrany_czujnik == lewy) {

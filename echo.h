@@ -22,6 +22,10 @@ private:
     unsigned short  objNum;
     double          range_Y_max, range_X_min, range_X_max;
     double          *resultsXY;
+    double          detDistanceAlg1_left[10];
+    double          detDistanceAlg1_right[10];
+    short           detDistanceAlg1_leftSamplesNo;
+    short           detDistanceAlg1_rightSamplesNo;
     bool            transducerActive;
     bool            signalGenerationFinished;
     bool            echoDetection;
@@ -44,6 +48,7 @@ public:
     /* Zmienne */
     unsigned int    first_echo_samples_no;
     unsigned int    delta_time;
+    double          detDistanceAlg1[10];
 
 };
 
