@@ -21,6 +21,7 @@ private:
     short           echoStrengthValues[20];
     unsigned short  objNum;
     double          range_Y_max, range_X_min, range_X_max;
+    double          *resultsXY;
     bool            transducerActive;
     bool            signalGenerationFinished;
     bool            echoDetection;
@@ -32,6 +33,7 @@ public:
     /* Funkcje publiczne klasy */
     void    restoreToDefaultEcho();
     void    processSignal(quint16 adc, quint16 x, int threshold);
+    void    deleteResults();
     double* calculateDetectionPoints(Sensor mySensor);
     double  getYmax();
     double  getXmin();

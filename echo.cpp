@@ -42,9 +42,10 @@ void Echo::processSignal(quint16 adc, quint16 x, int threshold)
 double* Echo::calculateDetectionPoints(Sensor mySensor)
 {
     double dystans[objNum];
-    double *resultsXY = new double[(objNum*2)];
+    resultsXY = new double[(objNum*2)];
     double dystans_xy[2];
     short dt;
+    short index = 0;
 
     for (short echoIndex = 0; echoIndex < objNum; echoIndex++) {
         echoStrengthValues[echoIndex] = calculateEchoStrength(echoEndTab[echoIndex] - echoStartTab[echoIndex]);
@@ -54,33 +55,25 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
 
     for (short echoIndex = 0; echoIndex < (objNum * 2); echoIndex += 2) {
         if (mySensor.wybrany_czujnik == lewy) {
-            dystans_xy[1] = cos(mySensor.angle*3.1415/180) * dystans[echoIndex] + SENSOR_OFFSET * sin(mySensor.angle*3.1415/180);
-            dystans_xy[0] = sin(mySensor.angle*3.1415/180) * dystans[echoIndex] - SENSOR_OFFSET * cos(mySensor.angle*3.1415/180);
-            resultsXY[echoIndex] = dystans_xy[0];
-            resultsXY[echoIndex + 1] = dystans_xy[1];
-
-            if (dystans_xy[1] > range_Y_max)
-                range_Y_max = dystans_xy[1];
-            if (dystans_xy[0] > range_X_max)
-                range_X_max = dystans_xy[0];
-            if (dystans_xy[0] < range_X_min)
-                range_X_min = dystans_xy[0];
+            dystans_xy[1] = cos(mySensor.angle*3.1415/180) * dystans[index] + SENSOR_OFFSET * sin(mySensor.angle*3.1415/180);
+            dystans_xy[0] = sin(mySensor.angle*3.1415/180) * dystans[index] - SENSOR_OFFSET * cos(mySensor.angle*3.1415/180);
         }
         else {
-            dystans_xy[1] = cos(mySensor.angle*3.1415/180) * dystans[echoIndex] - SENSOR_OFFSET * sin(mySensor.angle*3.1415/180);
-            dystans_xy[0] = sin(mySensor.angle*3.1415/180) * dystans[echoIndex] + SENSOR_OFFSET * cos(mySensor.angle*3.1415/180);
-            resultsXY[echoIndex] = dystans_xy[0];
-            resultsXY[echoIndex + 1] = dystans_xy[1];
-
-            if (dystans_xy[1] > range_Y_max)
-                range_Y_max = dystans_xy[1];
-            if (dystans_xy[0] > range_X_max)
-                range_X_max = dystans_xy[0];
-            if (dystans_xy[0] < range_X_min)
-                range_X_min = dystans_xy[0];
+            dystans_xy[1] = cos(mySensor.angle*3.1415/180) * dystans[index] - SENSOR_OFFSET * sin(mySensor.angle*3.1415/180);
+            dystans_xy[0] = sin(mySensor.angle*3.1415/180) * dystans[index] + SENSOR_OFFSET * cos(mySensor.angle*3.1415/180);
         }
-    }
+        resultsXY[echoIndex] = dystans_xy[0];
+        resultsXY[echoIndex + 1] = dystans_xy[1];
 
+        index++;
+
+        if (dystans_xy[1] > range_Y_max)
+            range_Y_max = dystans_xy[1];
+        if (dystans_xy[0] > range_X_max)
+            range_X_max = dystans_xy[0];
+        if (dystans_xy[0] < range_X_min)
+            range_X_min = dystans_xy[0];
+    }
     return resultsXY;
 }
 
@@ -111,7 +104,12 @@ short Echo::getEchoStrengthValue(short index)
 
 short Echo::calculateEchoStrength(quint16 echoStr)
 {
-    return ((echoStr % 13) + 1);
+    return (static_cast<int>(echoStr / 13) + 1);
+}
+
+void Echo::deleteResults()
+{
+    delete [] resultsXY;
 }
 
 void Echo::restoreToDefaultEcho()

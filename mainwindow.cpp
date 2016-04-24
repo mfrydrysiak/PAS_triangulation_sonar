@@ -55,11 +55,6 @@ void MainWindow::readSerialData()
     static Echo         echo; 
     static quint16      x = 0;
     static quint16      adc_val;
-    static bool         first_cross_adc_up = false,
-                        first_cross_adc_down = false,
-                        second_cross_adc_up = false,
-                        second_cross_adc_down = false;
-
 
     while (stm32_serial->canReadLine())
     {
@@ -109,6 +104,7 @@ void MainWindow::readSerialData()
                 float angle_tmp = mbSonar.angle;
                 mbSonar.angle = 0;
                 drawDataOnMap(echo);
+                echo.restoreToDefaultEcho();
                 ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
                 ui->sonarMap->xAxis->setRange(-1, 1);
                 ui->sonarMap->replot();
@@ -132,6 +128,7 @@ void MainWindow::readSerialData()
                 float angle_tmp = mbSonar.angle;
                 mbSonar.angle = 0;
                 drawDataOnMap(echo);
+                echo.restoreToDefaultEcho();
                 ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
                 ui->sonarMap->xAxis->setRange(-1, 1);
                 ui->sonarMap->replot();
@@ -141,13 +138,7 @@ void MainWindow::readSerialData()
                 if (mbSonar.tryb_pracy == podwojny)
                     mbSonar.wybrany_czujnik = lewy;
             }
-
-            first_cross_adc_up = false;
-            first_cross_adc_down = false;
-            second_cross_adc_up = false;
-            second_cross_adc_down = false;
         }
-
 
         //////////////////////////////////////////////////////////////////////////////////
         //                           Skanowanie otoczenia                               //
@@ -158,6 +149,7 @@ void MainWindow::readSerialData()
             if (mbSonar.tryb_pracy == pojedynczy)
             {
                 drawDataOnMap(echo);
+                echo.restoreToDefaultEcho();
                 ui->sonarMap->xAxis->setRange(dystans_x_min * 1.1, dystans_x_max * 1.1);
                 ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
                 x = 0;
@@ -195,6 +187,7 @@ void MainWindow::readSerialData()
             if (mbSonar.tryb_pracy == podwojny)
             {
                 drawDataOnMap(echo);
+                echo.restoreToDefaultEcho();
                 ui->sonarMap->xAxis->setRange(dystans_x_min * 1.1, dystans_x_max * 1.1);
                 ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
                 x = 0;
@@ -228,12 +221,8 @@ void MainWindow::readSerialData()
                     }
                 }
             }
-
-            first_cross_adc_up = false;
-            first_cross_adc_down = false;
-            second_cross_adc_up = false;
-            second_cross_adc_down = false; 
         }
+        echo.deleteResults();
     }
 }
 
