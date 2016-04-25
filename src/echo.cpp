@@ -49,7 +49,7 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
     short index = 0;
 
     /* Clear table for the algorithm 1 */
-    if (mySensor.wybrany_czujnik == lewy)
+    if (mySensor.wybrany_czujnik == Sensor::lewy)
         for (short i = 0; i < 10; i++) {
             detDistanceAlg1_left[i] = 0;
             detDistanceAlg1_leftSamplesNo = 0;
@@ -65,7 +65,7 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
     for (short echoIndex = 0; echoIndex < objNum; echoIndex++) {
         echoStrengthValues[echoIndex] = calculateEchoStrength(echoEndTab[echoIndex] - echoStartTab[echoIndex]);
 
-        if (mySensor.wybrany_czujnik == lewy)
+        if (mySensor.wybrany_czujnik == Sensor::lewy)
             detDistanceAlg1_leftEchoStrength[echoIndex] = echoStrengthValues[echoIndex];
         else
             detDistanceAlg1_rightEchoStrength[echoIndex] = echoStrengthValues[echoIndex];
@@ -75,16 +75,16 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
     }
 
     /* Algorithm 1 - accept neighbours */
-    if (mySensor.algorithm == alg1) {
+    if (mySensor.algorithm == Sensor::alg1) {
         /* Acquire data for the left sensor - max. 10 samples */
-        if (mySensor.wybrany_czujnik == lewy) {
+        if (mySensor.wybrany_czujnik == Sensor::lewy) {
             for (int i = 0; i < objNum && i < 10; i++) {
                 detDistanceAlg1_left[i] = dystans[i];
                 detDistanceAlg1_leftSamplesNo = i + 1;
             }
         }
         /* Compare data from the right sensor with data from the left one and choose only close samples */
-        else if (mySensor.wybrany_czujnik == prawy) {
+        else if (mySensor.wybrany_czujnik == Sensor::prawy) {
             for (int i = 0; i < objNum && i < 10; i++) {
                 detDistanceAlg1_right[i] = dystans[i];
                 detDistanceAlg1_rightSamplesNo = i + 1;
@@ -105,7 +105,7 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
 
 
     for (short echoIndex = 0; echoIndex < (objNum * 2); echoIndex += 2) {
-        if (mySensor.wybrany_czujnik == lewy) {
+        if (mySensor.wybrany_czujnik == Sensor::lewy) {
             dystans_xy[1] = cos(mySensor.angle*3.1415/180) * dystans[index] + SENSOR_OFFSET * sin(mySensor.angle*3.1415/180);
             dystans_xy[0] = sin(mySensor.angle*3.1415/180) * dystans[index] - SENSOR_OFFSET * cos(mySensor.angle*3.1415/180);
         }

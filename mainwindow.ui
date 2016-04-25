@@ -354,13 +354,6 @@
                <string>Algorithm</string>
               </property>
               <layout class="QGridLayout" name="gridLayout">
-               <item row="0" column="0">
-                <widget class="QCheckBox" name="cBox_alg1">
-                 <property name="text">
-                  <string>Alg1</string>
-                 </property>
-                </widget>
-               </item>
                <item row="0" column="1">
                 <widget class="QDoubleSpinBox" name="spinBox_alg1">
                  <property name="maximum">
@@ -376,6 +369,43 @@
                </item>
                <item row="0" column="2">
                 <widget class="QCheckBox" name="alg1_visible">
+                 <property name="text">
+                  <string>Visible</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QRadioButton" name="cBox_alg1">
+                 <property name="text">
+                  <string>Alg1</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QRadioButton" name="rBtn_Trian">
+                 <property name="text">
+                  <string>Trian</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QDoubleSpinBox" name="spinBox_Tr">
+                 <property name="maximum">
+                  <double>0.100000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.010000000000000</double>
+                 </property>
+                 <property name="value">
+                  <double>0.050000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2">
+                <widget class="QCheckBox" name="cBox_Tr_visible">
                  <property name="text">
                   <string>Visible</string>
                  </property>

@@ -64,6 +64,12 @@ private slots:
 
     void on_alg1_visible_stateChanged(int arg1);
 
+    void showPointCoordinates(QMouseEvent *event);
+
+    void on_rBtn_Trian_clicked();
+
+    void on_cBox_alg1_clicked();
+
 private:
     Ui::MainWindow *ui;
     SettingsSerialDialog *settingsSerDialog;
