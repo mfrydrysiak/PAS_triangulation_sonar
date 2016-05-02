@@ -70,6 +70,8 @@ private slots:
 
     void on_cBox_alg1_clicked();
 
+    void on_cBox_Tr_visible_clicked();
+
 private:
     Ui::MainWindow *ui;
     SettingsSerialDialog *settingsSerDialog;

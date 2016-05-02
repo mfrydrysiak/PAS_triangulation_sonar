@@ -15,7 +15,8 @@ public:
 
     enum _algorithm { alg0 = 0,
                       alg1 = 1,
-                      triangulation = 2 };
+                      triangulation = 2,
+                      alg1_and_trian = 3 };
 
     /* Funkcje publiczne klasy */
     void zmien_czujnik();

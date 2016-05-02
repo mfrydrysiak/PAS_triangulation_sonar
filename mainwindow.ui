@@ -377,20 +377,6 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="0">
-                <widget class="QRadioButton" name="cBox_alg1">
-                 <property name="text">
-                  <string>Alg1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QRadioButton" name="rBtn_Trian">
-                 <property name="text">
-                  <string>Trian</string>
-                 </property>
-                </widget>
-               </item>
                <item row="1" column="1">
                 <widget class="QDoubleSpinBox" name="spinBox_Tr">
                  <property name="maximum">
@@ -411,6 +397,20 @@
                  </property>
                  <property name="checked">
                   <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QCheckBox" name="cBox_alg1">
+                 <property name="text">
+                  <string>Alg1</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QCheckBox" name="rBtn_Trian">
+                 <property name="text">
+                  <string>Trian</string>
                  </property>
                 </widget>
                </item>
