@@ -13,8 +13,9 @@
 #include <math.h>
 #include <string>
 
-#define MAX_DATA        700
+#define MAX_DATA        800
 #define SILENCE_SIGNAL  160
+#define PI              3.14159265
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -289,9 +290,9 @@ void MainWindow::drawDataOnMap(Echo *echo)
                 else
                     ui->sonarMap->graph(1)->addData(dystans_x_cpy, dystans_y_cpy);
 
-                dystans_y_cpy += cos(mbSonar.angle*3.1415/180) * offset;
+                dystans_y_cpy += cos(mbSonar.angle*PI/180) * offset;
                 if (abs(mbSonar.angle) > 0.001)
-                    dystans_x_cpy += sin(mbSonar.angle*3.1415/180) * offset;
+                    dystans_x_cpy += sin(mbSonar.angle*PI/180) * offset;
             }
         }
         index++;
@@ -305,8 +306,8 @@ void MainWindow::drawDataOnMap(Echo *echo)
         short alg1_index = 0;
         double alg1_dystans_xy[2];
         while (echo->detDistanceAlg1[alg1_index] > 0.01) {
-            alg1_dystans_xy[1] = cos(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
-            alg1_dystans_xy[0] = sin(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
+            alg1_dystans_xy[1] = cos(mbSonar.angle*PI/180) * echo->detDistanceAlg1[alg1_index];
+            alg1_dystans_xy[0] = sin(mbSonar.angle*PI/180) * echo->detDistanceAlg1[alg1_index];
             ui->sonarMap->graph(2)->addData(alg1_dystans_xy[0], alg1_dystans_xy[1]);
             alg1_index++;
         }
@@ -319,21 +320,22 @@ void MainWindow::drawDataOnMap(Echo *echo)
 
         while (echo->detDistanceAlg1[alg1_index] > 0.01) {
 
-            alg1_dystans_xy[0] = sin(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
-            alg1_dystans_xy[1] = cos(mbSonar.angle*3.1415/180) * echo->detDistanceAlg1[alg1_index];
+            alg1_dystans_xy[0] = sin(mbSonar.angle*PI/180) * echo->detDistanceAlg1[alg1_index];
+            alg1_dystans_xy[1] = cos(mbSonar.angle*PI/180) * echo->detDistanceAlg1[alg1_index];
 
             for (short i = 0; i < echo->detDistanceAlg1_Strength[alg1_index]; i++) {
                 ui->sonarMap->graph(2)->addData(alg1_dystans_xy[0], alg1_dystans_xy[1]);
-                alg1_dystans_xy[1] += cos(mbSonar.angle*3.1415/180) * offset;
+                alg1_dystans_xy[1] += cos(mbSonar.angle*PI/180) * offset;
                 if (abs(mbSonar.angle) > 0.001)
-                    alg1_dystans_xy[0] += sin(mbSonar.angle*3.1415/180) * offset;
+                    alg1_dystans_xy[0] += sin(mbSonar.angle*PI/180) * offset;
             }
 
             alg1_index++;
         }
     }
     if ((mbSonar.algorithm == Sensor::triangulation || mbSonar.algorithm == Sensor::alg1_and_trian)
-            && mbSonar.wybrany_czujnik == Sensor::prawy && ui->rBtn_TOF_scan->isChecked()) {
+            //&& mbSonar.wybrany_czujnik == Sensor::prawy && ui->rBtn_TOF_scan->isChecked()) {
+            && mbSonar.wybrany_czujnik == Sensor::prawy) {
         short trIndex = 0;
         while (echo->getTrianX(trIndex) > 0.01 || echo->getTrianY(trIndex) > 0.01) {
             ui->sonarMap->graph(3)->addData(echo->getTrianX(trIndex), echo->getTrianY(trIndex));
@@ -365,6 +367,10 @@ void MainWindow::drawMap(QCustomPlot *customPlot)
     customPlot->xAxis->setRange(-1, 1);
     customPlot->yAxis->setRange(0, 0.5);
 
+    /* Enable the 'drag' option */
+    customPlot->setInteractions(customPlot->interactions() | QCP::iRangeDrag);
+
+    connect(customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(zoomWithScroll(QWheelEvent*)));
     connect(customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(showPointCoordinates(QMouseEvent*)));
 
     customPlot->replot();
@@ -659,10 +665,10 @@ void MainWindow::on_cBox_Tr_visible_clicked()
 
 void MainWindow::showPointCoordinates(QMouseEvent *event)
 {
-    float x = ui->sonarMap->xAxis->pixelToCoord(event->pos().x());
-    float y = ui->sonarMap->yAxis->pixelToCoord(event->pos().y());
-    float dystans_context = sqrt(x*x+y*y);
-    setToolTip(QString("%1 , %2, %3").arg(x).arg(y).arg(dystans_context));
+    float x = roundf(ui->sonarMap->xAxis->pixelToCoord(event->pos().x()) * 10000)/10000;
+    float y = roundf(ui->sonarMap->yAxis->pixelToCoord(event->pos().y()) * 10000)/10000;
+    float dystans_context = roundf(sqrt(x*x+y*y) * 10000)/10000;
+    setToolTip(QString("x: %1\ny: %2\nd: %3").arg(x).arg(y).arg(dystans_context));
 }
 
 void MainWindow::on_rBtn_Trian_clicked()
@@ -680,6 +686,14 @@ void MainWindow::on_rBtn_Trian_clicked()
 
         mbSonar.tryb_pracy      = Sensor::podwojny;
         mbSonar.wybrany_czujnik = Sensor::lewy;
+    }
+    else if (!(ui->cBox_alg1->isChecked())) {
+        ui->cBox_left_sensor->setEnabled(true);
+        ui->cBox_right_sensor->setEnabled(true);
+        mbSonar.algorithm = Sensor::alg0;
+    }
+    else {
+        mbSonar.algorithm = Sensor::alg1;
     }
 }
 
@@ -699,6 +713,42 @@ void MainWindow::on_cBox_alg1_clicked()
         mbSonar.tryb_pracy      = Sensor::podwojny;
         mbSonar.wybrany_czujnik = Sensor::lewy;
     }
+    else if (!(ui->rBtn_Trian->isChecked())) {
+        ui->cBox_left_sensor->setEnabled(true);
+        ui->cBox_right_sensor->setEnabled(true);
+        mbSonar.algorithm = Sensor::alg0;
+    }
+    else {
+        mbSonar.algorithm = Sensor::triangulation;
+    }
 }
 
+/*---------------------------------------------------------------*/
+/*--------------------------- ZOOM ------------------------------*/
+/*---------------------------------------------------------------*/
 
+void MainWindow::zoomWithScroll(QWheelEvent *event)
+{
+    QPoint scrollNum = event->angleDelta();
+
+    if (!scrollNum.isNull()) {
+        if (scrollNum.ry() < 0) {
+            ui->sonarMap->xAxis->scaleRange(1.2,0);
+            ui->sonarMap->yAxis->scaleRange(1.2,0);
+        } else {
+            ui->sonarMap->xAxis->scaleRange(0.8,0);
+            ui->sonarMap->yAxis->scaleRange(0.8,0);
+        }
+        ui->sonarMap->replot();
+    }
+}
+
+void MainWindow::on_btn_save_clicked()
+{
+    QString fileName = ui->saveNameEdit->text();
+    if (fileName != NULL) {
+        ui->sonarMap->saveJpg(fileName);
+    } else {
+        QMessageBox::critical(this, "Save failed!", "Specify the file name.");
+    }
+}

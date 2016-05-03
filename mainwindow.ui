@@ -21,8 +21,11 @@
     </sizepolicy>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout" stretch="8,3">
+    <property name="spacing">
+     <number>6</number>
+    </property>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="2,6">
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="4,11">
       <property name="spacing">
        <number>6</number>
       </property>
@@ -33,6 +36,12 @@
         </property>
         <item>
          <widget class="QPushButton" name="connectBtn">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Connect</string>
           </property>
@@ -45,12 +54,18 @@
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>1</horstretch>
+            <horstretch>2</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="maximumSize">
+           <size>
+            <width>255</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="tabControl">
            <attribute name="title">
@@ -419,12 +434,75 @@
             </item>
            </layout>
           </widget>
+          <widget class="QWidget" name="save_tab">
+           <attribute name="title">
+            <string>Save</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="0" column="0">
+             <widget class="QGroupBox" name="groupBox_9">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="title">
+               <string>Save current view</string>
+              </property>
+              <layout class="QFormLayout" name="formLayout_6">
+               <item row="1" column="0">
+                <widget class="QPushButton" name="btn_save">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>203</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Save</string>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>10</width>
+                   <height>16</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLineEdit" name="saveNameEdit">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>2</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
       </item>
       <item>
        <widget class="QGroupBox" name="groupBox_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>2</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="title">
          <string>Sonar map</string>
         </property>
@@ -456,6 +534,12 @@
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>2</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="title">
        <string>Analog voltage envelope</string>
       </property>
@@ -469,7 +553,7 @@
            </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
+             <horstretch>2</horstretch>
              <verstretch>1</verstretch>
             </sizepolicy>
            </property>

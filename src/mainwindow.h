@@ -54,8 +54,6 @@ private slots:
 
     void on_cBox_right_sensor_stateChanged(int arg1);
 
-    void on_cBox_alg1_stateChanged(int arg1);
-
     void on_spinBox_alg1_valueChanged(double arg1);
 
     void on_lSon_visible_stateChanged(int arg1);
@@ -66,11 +64,15 @@ private slots:
 
     void showPointCoordinates(QMouseEvent *event);
 
+    void zoomWithScroll(QWheelEvent *event);
+
     void on_rBtn_Trian_clicked();
 
     void on_cBox_alg1_clicked();
 
     void on_cBox_Tr_visible_clicked();
+
+    void on_btn_save_clicked();
 
 private:
     Ui::MainWindow *ui;

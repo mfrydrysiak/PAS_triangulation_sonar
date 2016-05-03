@@ -76,9 +76,14 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
         else
             detDistanceAlg1_rightEchoStrength[echoIndex] = echoStrengthValues[echoIndex];
 
-        //dt = echoEndTab[echoIndex] - waveGenerationTime;
         dt = echoStartTab[echoIndex] - waveGenerationTime;
-        dystans[echoIndex] = (275*(dt*0.00001))/2;
+
+        unsigned short adjL = 325, adjR = 325;
+
+        if (mySensor.wybrany_czujnik == Sensor::lewy)
+            dystans[echoIndex] = (adjL*(dt*0.00001))/2;
+        else
+            dystans[echoIndex] = (adjR*(dt*0.00001))/2;
     }
 
     /* Algorithm 1 - accept neighbours */
@@ -205,7 +210,7 @@ short Echo::getEchoStrengthValue(short index)
 
 short Echo::calculateEchoStrength(quint16 echoStr)
 {
-    return (static_cast<int>(echoStr / 13) + 1);
+    return (static_cast<int>(echoStr / 25) + 1);
 }
 
 void Echo::deleteResults()
