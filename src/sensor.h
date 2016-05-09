@@ -22,13 +22,14 @@ public:
     void zmien_czujnik();
 
     /* Zmienne publiczne */
-    czujnik     wybrany_czujnik;
-    _tryb_pracy tryb_pracy;
-    _algorithm  algorithm;
-    double      alg1_radius;
-    float       angleStep;
-    float       angle;
-    float       maxAngle;
+    czujnik         wybrany_czujnik;
+    _tryb_pracy     tryb_pracy;
+    _algorithm      algorithm;
+    unsigned short  currentFilter;
+    double          alg1_radius;
+    float           angleStep;
+    float           angle;
+    float           maxAngle;
 
 };
 

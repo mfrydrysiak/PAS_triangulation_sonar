@@ -254,7 +254,7 @@ void MainWindow::drawDataOnMap(Echo *echo)
     ui->sonarMap->graph(3)->setLineStyle(QCPGraph::lsNone);
 
     short detObjNum = echo->getNumberOfObjects();
-    double *detectionPoints = echo->calculateDetectionPoints(mbSonar);
+    double *detectionPoints = echo->calculateDetectionPoints(mbSonar, ui->spinBox_calibLeft->value(), ui->spinBox_calibRight->value());
 
     if (dystans_y_max < echo->getYmax())
         dystans_y_max = echo->getYmax();
@@ -423,6 +423,7 @@ void MainWindow::on_singleMeasurementBtn_clicked()
     else
     {
         currentMeasurementType = single;
+        mbSonar.currentFilter = 0;
         ui->sonarSignal->graph(0)->clearData();
         ui->sonarSignal->graph(2)->clearData();
         if (mbSonar.wybrany_czujnik == Sensor::lewy)
@@ -439,6 +440,7 @@ void MainWindow::on_scanBtn_clicked()
     else
     {
         currentMeasurementType = scan;
+        mbSonar.currentFilter = 0;
         ui->sonarMap->graph(0)->clearData();
         ui->sonarMap->graph(1)->clearData();
         ui->sonarMap->graph(2)->clearData();

@@ -65,7 +65,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tabControl">
            <attribute name="title">
@@ -184,6 +184,26 @@
                  </property>
                 </widget>
                </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>Filter</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QSpinBox" name="filterNumber">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>5</number>
+                 </property>
+                 <property name="value">
+                  <number>3</number>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </widget>
             </item>
@@ -255,45 +275,13 @@
             <item row="5" column="1">
              <widget class="QGroupBox" name="groupBox_7">
               <property name="title">
-               <string>Measurement</string>
+               <string>Calibration</string>
               </property>
               <layout class="QFormLayout" name="formLayout_4">
                <item row="0" column="0">
                 <widget class="QLabel" name="label_5">
                  <property name="text">
                   <string>Left</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLCDNumber" name="lcd_left">
-                 <property name="font">
-                  <font>
-                   <pointsize>12</pointsize>
-                   <weight>50</weight>
-                   <bold>false</bold>
-                   <strikeout>false</strikeout>
-                   <stylestrategy>PreferDefault</stylestrategy>
-                   <kerning>true</kerning>
-                  </font>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::Box</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="midLineWidth">
-                  <number>0</number>
-                 </property>
-                 <property name="smallDecimalPoint">
-                  <bool>false</bool>
-                 </property>
-                 <property name="digitCount">
-                  <number>5</number>
-                 </property>
-                 <property name="segmentStyle">
-                  <enum>QLCDNumber::Flat</enum>
                  </property>
                 </widget>
                </item>
@@ -304,13 +292,29 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
-                <widget class="QLCDNumber" name="lcd_right">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
+               <item row="0" column="1">
+                <widget class="QSpinBox" name="spinBox_calibLeft">
+                 <property name="minimum">
+                  <number>200</number>
                  </property>
-                 <property name="segmentStyle">
-                  <enum>QLCDNumber::Flat</enum>
+                 <property name="maximum">
+                  <number>400</number>
+                 </property>
+                 <property name="value">
+                  <number>343</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QSpinBox" name="spinBox_calibRight">
+                 <property name="minimum">
+                  <number>200</number>
+                 </property>
+                 <property name="maximum">
+                  <number>400</number>
+                 </property>
+                 <property name="value">
+                  <number>343</number>
                  </property>
                 </widget>
                </item>

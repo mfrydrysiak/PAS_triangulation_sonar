@@ -17,6 +17,10 @@ Echo::Echo()
         echoStartTab[i] = 0;
     for (short i = 0; i < 20; i++)
         echoEndTab[i] = 0;
+    for (short i = 0; i < 5; i++) {
+        filterDistTab_Left[i]  = 0;
+        filterDistTab_Right[i] = 0;
+    }
 }
 
 void Echo::processSignal(quint16 adc, quint16 x, int threshold)
@@ -42,7 +46,7 @@ void Echo::processSignal(quint16 adc, quint16 x, int threshold)
     }
 }
 
-double* Echo::calculateDetectionPoints(Sensor mySensor)
+double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, unsigned short adjR)
 {
     double dystans[objNum];
     resultsXY = new double[(objNum*2)];
@@ -77,8 +81,6 @@ double* Echo::calculateDetectionPoints(Sensor mySensor)
             detDistanceAlg1_rightEchoStrength[echoIndex] = echoStrengthValues[echoIndex];
 
         dt = echoStartTab[echoIndex] - waveGenerationTime;
-
-        unsigned short adjL = 325, adjR = 325;
 
         if (mySensor.wybrany_czujnik == Sensor::lewy)
             dystans[echoIndex] = (adjL*(dt*0.00001))/2;

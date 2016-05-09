@@ -44,7 +44,7 @@ public:
     void    restoreToDefaultEcho();
     void    processSignal(quint16 adc, quint16 x, int threshold);
     void    deleteResults();
-    double* calculateDetectionPoints(Sensor mySensor);
+    double* calculateDetectionPoints(Sensor mySensor, unsigned short adjL, unsigned short adjR);
     double  getYmax();
     double  getXmin();
     double  getXmax();
@@ -56,6 +56,7 @@ public:
     /* Zmienne */
     unsigned int    first_echo_samples_no;
     unsigned int    delta_time;
+    double          filterDistTab_Left[5], filterDistTab_Right[5];
     double          detDistanceAlg1[10];
     short           detDistanceAlg1_Strength[10];
 
