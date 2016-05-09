@@ -10,7 +10,7 @@ class Echo
 {
 private:
     /* Funkcje prywatne klasy */
-    short   calculateEchoStrength(quint16 echoStr);
+    short   calculateEchoStrength(quint16 echoStr, Sensor sensor);
     void    echoTriangulation(Sensor mySensor, double echoL, double echoR, short index);
 
     /* Zmienne prywatne */

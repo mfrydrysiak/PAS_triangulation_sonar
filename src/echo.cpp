@@ -73,7 +73,7 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
         }
 
     for (short echoIndex = 0; echoIndex < objNum; echoIndex++) {
-        echoStrengthValues[echoIndex] = calculateEchoStrength(echoEndTab[echoIndex] - echoStartTab[echoIndex]);
+        echoStrengthValues[echoIndex] = calculateEchoStrength(echoEndTab[echoIndex] - echoStartTab[echoIndex], mySensor);
 
         if (mySensor.wybrany_czujnik == Sensor::lewy)
             detDistanceAlg1_leftEchoStrength[echoIndex] = echoStrengthValues[echoIndex];
@@ -110,7 +110,9 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
                 for (int k = 0; k < detDistanceAlg1_leftSamplesNo; k++) {
                     if (abs(detDistanceAlg1_right[j] - detDistanceAlg1_left[k]) < mySensor.alg1_radius) {
 
-                        if (mySensor.algorithm == Sensor::triangulation || mySensor.algorithm == Sensor::alg1_and_trian) {
+                        if ((mySensor.algorithm == Sensor::triangulation || mySensor.algorithm == Sensor::alg1_and_trian)
+                                && (detDistanceAlg1_leftEchoStrength[index_alg1]  == 3)
+                                && (detDistanceAlg1_rightEchoStrength[index_alg1] == 3) ) {
                             echoTriangulation(mySensor, detDistanceAlg1_left[k], detDistanceAlg1_right[j], index_alg1);
                         }
 
@@ -210,9 +212,33 @@ short Echo::getEchoStrengthValue(short index)
     return echoStrengthValues[index];
 }
 
-short Echo::calculateEchoStrength(quint16 echoStr)
+short Echo::calculateEchoStrength(quint16 echoStr, Sensor sensor)
 {
-    return (static_cast<int>(echoStr / 25) + 1);
+    switch (sensor.wybrany_czujnik) {
+        case 0:
+            if (echoStr == 0)
+              return 0;
+            else if (echoStr < 35)
+                return 1;
+            else if (echoStr < 70)
+                return 2;
+            else
+                return 3;
+            break;
+        case 1:
+            if (echoStr == 0)
+             return 0;
+            else if (echoStr < 30)
+             return 1;
+            else if (echoStr < 60)
+             return 2;
+            else
+             return 3;
+            break;
+        default:
+            break;
+    }
+    //return (static_cast<int>(echoStr / 25) + 1);
 }
 
 void Echo::deleteResults()
