@@ -23,12 +23,24 @@ Echo::Echo()
     }
 }
 
-void Echo::processSignal(quint16 adc, quint16 x, int threshold)
+void Echo::processSignal(Sensor mySensor, quint16 adc, quint16 x, int threshold)
 {
     /* Wait for the acoustic wave generation period */
-    if (signalGenerationFinished == false && adc >= threshold && transducerActive == false) {
+    if (signalGenerationFinished == false && adc < threshold && transducerActive == false) {
+        adc_prv = adc;
+    }
+    else if (signalGenerationFinished == false && adc >= threshold && transducerActive == false) {
         transducerActive = true;
         waveGenerationTime = x;
+        /* Calculations for interpolation */
+        quint16 dV  = adc - adc_prv;
+        quint16 dTh = threshold - adc_prv;
+        if (adc != threshold) {
+            genOffsetInterpol = ((double)dTh)/((double)dV);
+        }
+        else {
+            genOffsetInterpol = 0;
+        }
     }
     else if (signalGenerationFinished == false && adc <= threshold && transducerActive == true)
         signalGenerationFinished = true;
@@ -36,13 +48,27 @@ void Echo::processSignal(quint16 adc, quint16 x, int threshold)
     if (signalGenerationFinished == true && x > 350) {
         if (echoDetection == false && adc >= threshold) {
             echoDetection = true;
-            echoStartTab[objNum] = x;
+            if (mySensor.interpolation == true) {
+                quint16 dV  = adc - adc_prv;
+                quint16 dTh = threshold - adc_prv;
+                if (adc != threshold) {
+                    detOffsetInterpol[objNum] = ((double)dTh)/((double)dV);
+                }
+                else {
+                    detOffsetInterpol[objNum] = 0;
+                }
+                echoStartTab[objNum] = x;
+            }
+            else
+                echoStartTab[objNum] = x;
         }
         else if (echoDetection == true && adc <= threshold) {
             echoDetection = false;
             echoEndTab[objNum] = x;
             objNum++;
         }
+        else if (echoDetection == false && adc < threshold)
+            adc_prv = adc;
     }
 }
 
@@ -73,7 +99,7 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
         }
 
     for (short echoIndex = 0; echoIndex < objNum; echoIndex++) {
-        echoStrengthValues[echoIndex] = calculateEchoStrength(echoEndTab[echoIndex] - echoStartTab[echoIndex], mySensor);
+        echoStrengthValues[echoIndex] = calculateEchoStrength(echoEndTab[echoIndex] - (short)echoStartTab[echoIndex], mySensor);
 
         if (mySensor.wybrany_czujnik == Sensor::lewy)
             detDistanceAlg1_leftEchoStrength[echoIndex] = echoStrengthValues[echoIndex];
@@ -82,10 +108,19 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
 
         dt = echoStartTab[echoIndex] - waveGenerationTime;
 
-        if (mySensor.wybrany_czujnik == Sensor::lewy)
-            dystans[echoIndex] = (adjL*(dt*0.00001))/2;
+        if (mySensor.wybrany_czujnik == Sensor::lewy) {
+            if (mySensor.interpolation == true)
+                dystans[echoIndex] = ((adjL*(dt*0.00001))/2) + ((adjL*(genOffsetInterpol*0.00001))/2)
+                        - ((adjL*(detOffsetInterpol[echoIndex]*0.00001))/2);
+            else
+                dystans[echoIndex] = (adjL*(dt*0.00001))/2;
+        }
         else
-            dystans[echoIndex] = (adjR*(dt*0.00001))/2;
+            if (mySensor.interpolation == true)
+                dystans[echoIndex] = ((adjR*(dt*0.00001))/2) + ((adjR*(genOffsetInterpol*0.00001))/2)
+                        - ((adjR*(detOffsetInterpol[echoIndex]*0.00001))/2);
+            else
+                dystans[echoIndex] = (adjR*(dt*0.00001))/2;
     }
 
     /* Algorithm 1 - accept neighbours */

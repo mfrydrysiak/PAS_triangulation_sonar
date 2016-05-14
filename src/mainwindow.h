@@ -76,6 +76,8 @@ private slots:
 
     void on_loadBtn_clicked();
 
+    void on_interpolation_cBox_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
     void dataHandler(Echo *echo_ptr, quint16 *x);

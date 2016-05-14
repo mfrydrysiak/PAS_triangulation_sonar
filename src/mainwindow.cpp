@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mbSonar.angle           = -45.0;
     mbSonar.angleStep       = 1.0;
     mbSonar.maxAngle        = 45.0;
+    mbSonar.interpolation   = false;
 
     ui->sonarMap->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->sonarMap, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
@@ -75,7 +76,7 @@ void MainWindow::readSerialData()
         {
             adc_val = serialBuffer.toUInt();
 
-            echo.processSignal(adc_val, x, threshold_value);
+            echo.processSignal(mbSonar, adc_val, x, threshold_value);
 
             x++;
 
@@ -346,7 +347,7 @@ void MainWindow::on_loadBtn_clicked()
                 adc_str = list_tmp[1];
                 x_tmp   = x_str.toUInt();
                 adc_tmp = adc_str.toUInt();
-                echo2.processSignal(adc_tmp, x_tmp, threshold_value);
+                echo2.processSignal(mbSonar, adc_tmp, x_tmp, threshold_value);
                 if (x_tmp == MAX_DATA) {
                     dataHandler(&echo2, &x_tmp);
                 }
@@ -883,3 +884,11 @@ void MainWindow::on_btn_save_clicked()
 }
 
 
+
+void MainWindow::on_interpolation_cBox_toggled(bool checked)
+{
+    if (checked)
+        mbSonar.interpolation = true;
+    else
+        mbSonar.interpolation = false;
+}

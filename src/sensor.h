@@ -30,6 +30,7 @@ public:
     float           angleStep;
     float           angle;
     float           maxAngle;
+    bool            interpolation;
 
 };
 
