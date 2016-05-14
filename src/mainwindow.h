@@ -74,8 +74,11 @@ private slots:
 
     void on_btn_save_clicked();
 
+    void on_loadBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
+    void dataHandler(Echo *echo_ptr, quint16 *x);
     SettingsSerialDialog *settingsSerDialog;
 
     enum measurementType {
@@ -91,6 +94,7 @@ private:
     QSerialPort     *stm32_serial;
     QString         stm32_port_name;
     bool            stm32_available;
+    bool            loadOperation;
     short           t1, dt;
     double          dystans_y_max;
     double          dystans_x_min;

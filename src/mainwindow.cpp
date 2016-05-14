@@ -12,6 +12,7 @@
 #include <QMessageBox>
 #include <math.h>
 #include <string>
+#include <QFileDialog>
 
 #define MAX_DATA        800
 #define SILENCE_SIGNAL  160
@@ -24,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     threshold_value = ui->signalThresholdValueBox->value();
+    loadOperation = false;
 
     drawMap(ui->sonarMap);
     drawSignalPlot(ui->sonarSignal);
@@ -61,6 +63,9 @@ void MainWindow::readSerialData()
     static quint16      x = 0;
     static quint16      adc_val;
 
+    static QString saveFileName = "/home/marekf/Dokumenty/pwr/mgr/build/build-sonar_app-Desktop_Qt_5_6_0_GCC_64bit-Debug/data/data.txt";
+    static QFile file(saveFileName);
+
     while (stm32_serial->canReadLine())
     {
         serialBuffer = stm32_serial->readLine();
@@ -73,6 +78,50 @@ void MainWindow::readSerialData()
             echo.processSignal(adc_val, x, threshold_value);
 
             x++;
+
+            /* Save data to the file */
+            static QTextStream stream(&file);
+            if (x == 1) {
+                file.open(QIODevice::ReadWrite | QIODevice::Text);
+
+                switch (currentMeasurementType) {
+                    case 1:
+                        stream << "SIN" << endl;
+                        break;
+                    case 2:
+                        stream << "SCA" << endl;
+                        break;
+                }
+
+                switch (mbSonar.tryb_pracy) {
+                    case 0:
+                        stream << "POJ" << endl;
+                        break;
+                    case 1:
+                        stream << "POD" << endl;
+                        break;
+                }
+
+                switch (mbSonar.wybrany_czujnik) {
+                    case 0:
+                        stream << "L" << endl
+                               << "A:" << mbSonar.angle << endl;
+
+                        break;
+                    case 1:
+                        stream << "R" << endl
+                               << "A:" << mbSonar.angle << endl;
+                        break;
+                }
+            }
+
+            stream << x << "\t" << adc_val << endl;
+
+            if (x == MAX_DATA) {
+                stream << "ANALOG_ENVELOPE_END" << endl;
+                //file.close();
+            }
+            /* ~~~~~~~~~~~~~~~~~~~~~ */
 
             if (currentMeasurementType == single)
             {
@@ -96,89 +145,138 @@ void MainWindow::readSerialData()
 
     if (x >= MAX_DATA)
     {
-        //////////////////////////////////////////////////////////////////////////////////
-        //                              Jeden pomiar                                    //
-        //////////////////////////////////////////////////////////////////////////////////
-        if (currentMeasurementType == single)
+        dataHandler(&echo, &x);
+    }
+}
+
+void MainWindow::dataHandler(Echo *echo_ptr, quint16 *x)
+{
+    //////////////////////////////////////////////////////////////////////////////////
+    //                              Jeden pomiar                                    //
+    //////////////////////////////////////////////////////////////////////////////////
+    if (currentMeasurementType == single)
+    {
+        if(mbSonar.wybrany_czujnik == Sensor::lewy)
         {
-            if(mbSonar.wybrany_czujnik == Sensor::lewy)
+            ui->sonarMap->graph(0)->clearData();
+            ui->sonarMap->graph(1)->clearData();
+            ui->sonarMap->graph(2)->clearData();
+            ui->sonarMap->graph(3)->clearData();
+
+            float angle_tmp = mbSonar.angle;
+            mbSonar.angle = 0;
+            drawDataOnMap(echo_ptr);
+            echo_ptr->restoreToDefaultEcho();
+            ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
+            ui->sonarMap->xAxis->setRange(-1, 1);
+            ui->sonarMap->replot();
+            mbSonar.angle = angle_tmp;
+            *x = 0;
+
+            if (mbSonar.tryb_pracy == Sensor::podwojny && loadOperation != true)
+            {
+                stm32_serial->write("sr");
+                mbSonar.wybrany_czujnik = Sensor::prawy;
+            }
+        }
+        else if (mbSonar.wybrany_czujnik == Sensor::prawy)
+        {
+            if (mbSonar.tryb_pracy == Sensor::pojedynczy)
             {
                 ui->sonarMap->graph(0)->clearData();
                 ui->sonarMap->graph(1)->clearData();
                 ui->sonarMap->graph(2)->clearData();
                 ui->sonarMap->graph(3)->clearData();
+            }
 
-                float angle_tmp = mbSonar.angle;
-                mbSonar.angle = 0;
-                drawDataOnMap(&echo);
-                echo.restoreToDefaultEcho();
-                ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
-                ui->sonarMap->xAxis->setRange(-1, 1);
-                ui->sonarMap->replot();
-                mbSonar.angle = angle_tmp;
-                x = 0;
+            float angle_tmp = mbSonar.angle;
+            mbSonar.angle = 0;
+            drawDataOnMap(echo_ptr);
+            echo_ptr->restoreToDefaultEcho();
+            ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
+            ui->sonarMap->xAxis->setRange(-1, 1);
+            ui->sonarMap->replot();
+            mbSonar.angle = angle_tmp;
+            *x = 0;
 
-                if (mbSonar.tryb_pracy == Sensor::podwojny)
+            if (mbSonar.tryb_pracy == Sensor::podwojny)
+                mbSonar.wybrany_czujnik = Sensor::lewy;
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////
+    //                           Skanowanie otoczenia                               //
+    //////////////////////////////////////////////////////////////////////////////////
+    else if (currentMeasurementType == scan)
+    {
+        /* Skanowanie jednym czujnikiem */
+        if (mbSonar.tryb_pracy == Sensor::pojedynczy)
+        {
+            drawDataOnMap(echo_ptr);
+            echo_ptr->restoreToDefaultEcho();
+            ui->sonarMap->xAxis->setRange(dystans_x_min * 1.1, dystans_x_max * 1.1);
+            ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
+            *x = 0;
+
+            if ((mbSonar.angle + mbSonar.angleStep) <= mbSonar.maxAngle && loadOperation != true)
+            {
+                if(mbSonar.wybrany_czujnik == Sensor::lewy)
                 {
-                    stm32_serial->write("sr");
-                    mbSonar.wybrany_czujnik = Sensor::prawy;
+                    if (!loadOperation)
+                        stm32_serial->write("c+");
+                    QThread::msleep(50);
+                    mbSonar.angle += mbSonar.angleStep;
+                    if (!loadOperation)
+                        stm32_serial->write("cl");
+                }
+                else if(mbSonar.wybrany_czujnik == Sensor::prawy)
+                {
+                    if (!loadOperation)
+                        stm32_serial->write("c+");
+                    QThread::msleep(50);
+                    mbSonar.angle += mbSonar.angleStep;
+                    if (!loadOperation)
+                        stm32_serial->write("cr");
                 }
             }
-            else if (mbSonar.wybrany_czujnik == Sensor::prawy)
+            else if (loadOperation != true)
             {
-                if (mbSonar.tryb_pracy == Sensor::pojedynczy)
-                {
-                    ui->sonarMap->graph(0)->clearData();
-                    ui->sonarMap->graph(1)->clearData();
-                    ui->sonarMap->graph(2)->clearData();
-                    ui->sonarMap->graph(3)->clearData();
-                }
-
-                float angle_tmp = mbSonar.angle;
-                mbSonar.angle = 0;
-                drawDataOnMap(&echo);
-                echo.restoreToDefaultEcho();
-                ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
-                ui->sonarMap->xAxis->setRange(-1, 1);
-                ui->sonarMap->replot();
-                mbSonar.angle = angle_tmp;
-                x = 0;
-
-                if (mbSonar.tryb_pracy == Sensor::podwojny)
-                    mbSonar.wybrany_czujnik = Sensor::lewy;
+                QThread::msleep(50);
+                stm32_serial->write("c+");
+                mbSonar.angle = ui->spinBox->value();
+                currentMeasurementType = none;
+                dystans_y_max = 0;
+                dystans_x_min = 0;
+                dystans_x_max = 0;
             }
         }
 
-        //////////////////////////////////////////////////////////////////////////////////
-        //                           Skanowanie otoczenia                               //
-        //////////////////////////////////////////////////////////////////////////////////
-        else if (currentMeasurementType == scan)
+        /* Skanowanie dwoma czujnikami */
+        if (mbSonar.tryb_pracy == Sensor::podwojny)
         {
-            /* Skanowanie jednym czujnikiem */
-            if (mbSonar.tryb_pracy == Sensor::pojedynczy)
+            drawDataOnMap(echo_ptr);
+            echo_ptr->restoreToDefaultEcho();
+            ui->sonarMap->xAxis->setRange(dystans_x_min * 1.1, dystans_x_max * 1.1);
+            ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
+            *x = 0;
+
+            if(mbSonar.wybrany_czujnik == Sensor::lewy && loadOperation != true)
             {
-                drawDataOnMap(&echo);
-                echo.restoreToDefaultEcho();
-                ui->sonarMap->xAxis->setRange(dystans_x_min * 1.1, dystans_x_max * 1.1);
-                ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
-                x = 0;
+                mbSonar.wybrany_czujnik = Sensor::prawy;
+                stm32_serial->write("cr");
+                QThread::msleep(50);
+            }
+            else if(mbSonar.wybrany_czujnik == Sensor::prawy && loadOperation != true)
+            {
+                mbSonar.wybrany_czujnik = Sensor::lewy;
 
                 if ((mbSonar.angle + mbSonar.angleStep) <= mbSonar.maxAngle)
                 {
-                    if(mbSonar.wybrany_czujnik == Sensor::lewy)
-                    {
+                    if (!loadOperation)
                         stm32_serial->write("c+");
-                        QThread::msleep(50);
-                        mbSonar.angle += mbSonar.angleStep;
-                        stm32_serial->write("cl");
-                    }
-                    else if(mbSonar.wybrany_czujnik == Sensor::prawy)
-                    {
-                        stm32_serial->write("c+");
-                        QThread::msleep(50);
-                        mbSonar.angle += mbSonar.angleStep;
-                        stm32_serial->write("cr");
-                    }
+                    QThread::msleep(50);
+                    mbSonar.angle += mbSonar.angleStep;
+                    stm32_serial->write("cl");
                 }
                 else
                 {
@@ -191,48 +289,77 @@ void MainWindow::readSerialData()
                     dystans_x_max = 0;
                 }
             }
+        }
+    }
+    echo_ptr->deleteResults();
+}
 
-            /* Skanowanie dwoma czujnikami */
-            if (mbSonar.tryb_pracy == Sensor::podwojny)
-            {
-                drawDataOnMap(&echo);
-                echo.restoreToDefaultEcho();
-                ui->sonarMap->xAxis->setRange(dystans_x_min * 1.1, dystans_x_max * 1.1);
-                ui->sonarMap->yAxis->setRange(0, dystans_y_max * 1.1);
-                x = 0;
+void MainWindow::on_loadBtn_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(
+                this,
+                tr("Open file"),
+                "/home/marekf/Dokumenty/pwr/mgr/build/build-sonar_app-Desktop_Qt_5_6_0_GCC_64bit-Debug/data",
+                "Text file (*txt)");
+    QFile fileToLoad(fileName);
 
-                if(mbSonar.wybrany_czujnik == Sensor::lewy)
-                {
-                    mbSonar.wybrany_czujnik = Sensor::prawy;
-                    stm32_serial->write("cr");
-                    QThread::msleep(50);
-                }
-                else if(mbSonar.wybrany_czujnik == Sensor::prawy)
-                {
-                    mbSonar.wybrany_czujnik = Sensor::lewy;
+    Echo echo2;
+    QString x_str, adc_str, angle_str;
+    quint16 x_tmp, adc_tmp;
+    float angle_tmp;
+    QStringList list_tmp;
+    measurementType mTmp = currentMeasurementType;
+    float mAngle = mbSonar.angle;
+    Sensor::czujnik mCzuj = mbSonar.wybrany_czujnik;
+    Sensor::_tryb_pracy mTryb = mbSonar.tryb_pracy;
 
-                    if ((mbSonar.angle + mbSonar.angleStep) <= mbSonar.maxAngle)
-                    {
-                        stm32_serial->write("c+");
-                        QThread::msleep(50);
-                        mbSonar.angle += mbSonar.angleStep;
-                        stm32_serial->write("cl");
-                    }
-                    else
-                    {
-                        QThread::msleep(50);
-                        stm32_serial->write("c+");
-                        mbSonar.angle = ui->spinBox->value();
-                        currentMeasurementType = none;
-                        dystans_y_max = 0;
-                        dystans_x_min = 0;
-                        dystans_x_max = 0;
-                    }
+    loadOperation = true;
+
+    if (fileToLoad.open(QIODevice::ReadOnly))
+    {
+        QTextStream in(&fileToLoad);
+        while (!in.atEnd())
+        {
+            QString line = in.readLine();
+
+            if (line == "SIN")
+                currentMeasurementType = single;
+            else if (line == "SCA")
+                currentMeasurementType = scan;
+            else if (line == "POJ")
+                mbSonar.tryb_pracy = Sensor::pojedynczy;
+            else if (line == "POD")
+                mbSonar.tryb_pracy = Sensor::podwojny;
+            else if (line == "L")
+                mbSonar.wybrany_czujnik = Sensor::lewy;
+            else if (line == "R")
+                mbSonar.wybrany_czujnik = Sensor::prawy;
+            else if (line.count(":")) {
+                list_tmp = line.split(":");
+                angle_str = list_tmp[1];
+                angle_tmp = angle_str.toFloat();
+                mbSonar.angle = angle_tmp;
+            }
+            else if (line != "ANALOG_ENVELOPE_END"){
+                list_tmp = line.split("\t");
+                x_str   = list_tmp[0];
+                adc_str = list_tmp[1];
+                x_tmp   = x_str.toUInt();
+                adc_tmp = adc_str.toUInt();
+                echo2.processSignal(adc_tmp, x_tmp, threshold_value);
+                if (x_tmp == MAX_DATA) {
+                    dataHandler(&echo2, &x_tmp);
                 }
             }
         }
-        echo.deleteResults();
+        fileToLoad.close();
+        loadOperation = false;
+        currentMeasurementType = mTmp;
+        mbSonar.wybrany_czujnik = mCzuj;
+        mbSonar.tryb_pracy = mTryb;
+        mbSonar.angle = mAngle;
     }
+
 }
 
 void MainWindow::drawDataOnMap(Echo *echo)
@@ -754,3 +881,5 @@ void MainWindow::on_btn_save_clicked()
         QMessageBox::critical(this, "Save failed!", "Specify the file name.");
     }
 }
+
+

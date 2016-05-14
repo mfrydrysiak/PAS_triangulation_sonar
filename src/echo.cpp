@@ -33,7 +33,7 @@ void Echo::processSignal(quint16 adc, quint16 x, int threshold)
     else if (signalGenerationFinished == false && adc <= threshold && transducerActive == true)
         signalGenerationFinished = true;
 
-    if (signalGenerationFinished == true) {
+    if (signalGenerationFinished == true && x > 350) {
         if (echoDetection == false && adc >= threshold) {
             echoDetection = true;
             echoStartTab[objNum] = x;
