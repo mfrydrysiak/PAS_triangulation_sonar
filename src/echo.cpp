@@ -198,9 +198,9 @@ void Echo::echoTriangulation(Sensor mySensor, double echoL, double echoR, short 
     double yTrian = sqrt((echoL*echoL)-(xTrian*xTrian));
     double theta = (mySensor.angle*PI/180);
     //int theta = 0;
-    double mRot[3][3] = { { cos(theta), sin(theta), -SENSOR_OFFSET*cos(theta)},
-                          {-sin(theta), cos(theta),  SENSOR_OFFSET*sin(theta)},
-                          { 0,          0,           1} };
+    double mRot[3][3] = { { cos(theta), sin(theta), SENSOR_OFFSET*(1-cos(theta))},
+                          {-sin(theta), cos(theta), SENSOR_OFFSET*sin(theta)},
+                          { 0,          0,          1} };
     double mTran[3] = {xTrian, yTrian, 1};
     double mPos[3]  = {0, 0, 0};
 
