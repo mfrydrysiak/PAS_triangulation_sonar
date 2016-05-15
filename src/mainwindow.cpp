@@ -13,6 +13,7 @@
 #include <math.h>
 #include <string>
 #include <QFileDialog>
+#include <QDateTime>
 
 #define MAX_DATA        800
 #define SILENCE_SIGNAL  160

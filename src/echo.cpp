@@ -110,15 +110,15 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
 
         if (mySensor.wybrany_czujnik == Sensor::lewy) {
             if (mySensor.interpolation == true)
-                dystans[echoIndex] = ((adjL*(dt*0.00001))/2) + ((adjL*(genOffsetInterpol*0.00001))/2)
-                        - ((adjL*(detOffsetInterpol[echoIndex]*0.00001))/2);
+                dystans[echoIndex] = ((adjL*(dt*0.00001))/2) + ((adjL*((1-genOffsetInterpol)*0.00001))/2)
+                        - ((adjL*((1-detOffsetInterpol[echoIndex])*0.00001))/2);
             else
                 dystans[echoIndex] = (adjL*(dt*0.00001))/2;
         }
         else
             if (mySensor.interpolation == true)
-                dystans[echoIndex] = ((adjR*(dt*0.00001))/2) + ((adjR*(genOffsetInterpol*0.00001))/2)
-                        - ((adjR*(detOffsetInterpol[echoIndex]*0.00001))/2);
+                dystans[echoIndex] = ((adjR*(dt*0.00001))/2) + ((adjR*((1-genOffsetInterpol)*0.00001))/2)
+                        - ((adjR*((1-detOffsetInterpol[echoIndex])*0.00001))/2);
             else
                 dystans[echoIndex] = (adjR*(dt*0.00001))/2;
     }
