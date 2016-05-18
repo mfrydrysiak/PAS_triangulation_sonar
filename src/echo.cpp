@@ -141,6 +141,7 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
             }
             /* Comparision */
             short index_alg1 = 0;
+            short index_trian = 0;
             for (int j = 0; j < detDistanceAlg1_rightSamplesNo; j++)
                 for (int k = 0; k < detDistanceAlg1_leftSamplesNo; k++) {
                     if (abs(detDistanceAlg1_right[j] - detDistanceAlg1_left[k]) < mySensor.alg1_radius) {
@@ -148,7 +149,8 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
                         if ((mySensor.algorithm == Sensor::triangulation || mySensor.algorithm == Sensor::alg1_and_trian)
                                 && (detDistanceAlg1_leftEchoStrength[index_alg1]  == 3)
                                 && (detDistanceAlg1_rightEchoStrength[index_alg1] == 3) ) {
-                            echoTriangulation(mySensor, detDistanceAlg1_left[k], detDistanceAlg1_right[j], index_alg1);
+                            echoTriangulation(mySensor, detDistanceAlg1_left[k], detDistanceAlg1_right[j], index_trian);
+                            index_trian++;
                         }
 
                         detDistanceAlg1[index_alg1] = ((detDistanceAlg1_right[j] + detDistanceAlg1_left[k]) / 2);
