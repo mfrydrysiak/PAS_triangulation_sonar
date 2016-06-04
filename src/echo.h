@@ -3,6 +3,7 @@
 
 #include "sensor.h"
 #include <QtGlobal>
+#include <QFile>
 
 using namespace std;
 
@@ -47,7 +48,7 @@ public:
     void    restoreToDefaultEcho();
     void    processSignal(Sensor mySensor, quint16 adc, quint16 x, int threshold);
     void    deleteResults();
-    double* calculateDetectionPoints(Sensor mySensor, unsigned short adjL, unsigned short adjR);
+    double* calculateDetectionPoints(Sensor mySensor, double adjL, double adjR);
     double  getYmax();
     double  getXmin();
     double  getXmax();

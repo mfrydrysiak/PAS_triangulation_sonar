@@ -383,7 +383,7 @@ void MainWindow::drawDataOnMap(Echo *echo)
     ui->sonarMap->graph(3)->setLineStyle(QCPGraph::lsNone);
 
     short detObjNum = echo->getNumberOfObjects();
-    double *detectionPoints = echo->calculateDetectionPoints(mbSonar, ui->spinBox_calibLeft->value(), ui->spinBox_calibRight->value());
+    double *detectionPoints = echo->calculateDetectionPoints(mbSonar, ui->doubleSpinBox_calibLeft->value(), ui->doubleSpinBox_calibRight->value());
 
     if (dystans_y_max < echo->getYmax())
         dystans_y_max = echo->getYmax();
@@ -400,10 +400,18 @@ void MainWindow::drawDataOnMap(Echo *echo)
     {
         if (ui->rBtn_TOF_scan->isChecked())
         {
-            if (mbSonar.wybrany_czujnik == Sensor::lewy)
+            if (mbSonar.wybrany_czujnik == Sensor::lewy) {
                 ui->sonarMap->graph(0)->addData(detectionPoints[echoNum], detectionPoints[echoNum + 1]);
-            else
+                /*double ustawione = ui->doubleSpinBox_calibLeft->value();
+                double calib = (0.5*ustawione)/detectionPoints[echoNum + 1];
+                QMessageBox::information(this, "calibraiton", QString::number(detectionPoints[echoNum + 1]));*/
+            }
+            else {
                 ui->sonarMap->graph(1)->addData(detectionPoints[echoNum], detectionPoints[echoNum + 1]);
+                /*double ustawione = ui->doubleSpinBox_calibRight->value();
+                double calib = (0.5*ustawione)/detectionPoints[echoNum + 1];
+                QMessageBox::information(this, "calibraiton", QString::number(detectionPoints[echoNum + 1]));*/
+            }
         }
         else if (ui->rBtn_PAS_scan->isChecked())
         {
@@ -468,6 +476,8 @@ void MainWindow::drawDataOnMap(Echo *echo)
         short trIndex = 0;
         while (echo->getTrianX(trIndex) > 0.01 || echo->getTrianY(trIndex) > 0.01) {
             ui->sonarMap->graph(3)->addData(echo->getTrianX(trIndex), echo->getTrianY(trIndex));
+            ui->lineEditX->setText(QString::number(echo->getTrianX(trIndex)));
+            ui->lineEditY->setText(QString::number(echo->getTrianY(trIndex)));
             trIndex++;
         }
     }

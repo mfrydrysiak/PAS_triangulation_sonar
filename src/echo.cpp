@@ -1,8 +1,12 @@
 #include "echo.h"
 #include "sensor.h"
+#include <QFile>
+#include <QTextStream>
 
 #define SENSOR_OFFSET   0.01175
 #define SENSOR_DIST     0.0235
+//#define SENSOR_OFFSET   0.01215
+//#define SENSOR_DIST     0.0243
 #define ALG1_DIST       0.01
 #define PI              3.14159265
 
@@ -72,7 +76,7 @@ void Echo::processSignal(Sensor mySensor, quint16 adc, quint16 x, int threshold)
     }
 }
 
-double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, unsigned short adjR)
+double* Echo::calculateDetectionPoints(Sensor mySensor, double adjL, double adjR)
 {
     double dystans[objNum];
     resultsXY = new double[(objNum*2)];
@@ -108,17 +112,28 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
 
         dt = echoStartTab[echoIndex] - waveGenerationTime;
 
+        static QString saveFileName =
+                    "/home/marekf/Dokumenty/pwr/mgr/build/build-sonar_app-Desktop_Qt_5_6_0_GCC_64bit-Debug/data/data_err.txt";
+        static QFile fileErr(saveFileName);
+        static QTextStream stream(&fileErr);
+        fileErr.open(QIODevice::ReadWrite | QIODevice::Text);
+        //stream << echoL << '\t' << echoR << endl;
+
         if (mySensor.wybrany_czujnik == Sensor::lewy) {
-            if (mySensor.interpolation == true)
+            if (mySensor.interpolation == true) {
                 dystans[echoIndex] = ((adjL*(dt*0.00001))/2) + ((adjL*((1-genOffsetInterpol)*0.00001))/2)
                         - ((adjL*((1-detOffsetInterpol[echoIndex])*0.00001))/2);
+                stream << dystans[echoIndex] << '\t';
+            }
             else
                 dystans[echoIndex] = (adjL*(dt*0.00001))/2;
         }
         else
-            if (mySensor.interpolation == true)
+            if (mySensor.interpolation == true) {
                 dystans[echoIndex] = ((adjR*(dt*0.00001))/2) + ((adjR*((1-genOffsetInterpol)*0.00001))/2)
                         - ((adjR*((1-detOffsetInterpol[echoIndex])*0.00001))/2);
+                stream << dystans[echoIndex] << endl;
+            }
             else
                 dystans[echoIndex] = (adjR*(dt*0.00001))/2;
     }
@@ -147,8 +162,8 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
                     if (abs(detDistanceAlg1_right[j] - detDistanceAlg1_left[k]) < mySensor.alg1_radius) {
 
                         if ((mySensor.algorithm == Sensor::triangulation || mySensor.algorithm == Sensor::alg1_and_trian)
-                                && (detDistanceAlg1_leftEchoStrength[index_alg1]  == 3)
-                                && (detDistanceAlg1_rightEchoStrength[index_alg1] == 3) ) {
+                                && (detDistanceAlg1_leftEchoStrength[index_alg1]  >= 2)
+                                && (detDistanceAlg1_rightEchoStrength[index_alg1] >= 2) ) {
                             echoTriangulation(mySensor, detDistanceAlg1_left[k], detDistanceAlg1_right[j], index_trian);
                             index_trian++;
                         }
@@ -189,6 +204,15 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, unsigned short adjL, uns
 
 void Echo::echoTriangulation(Sensor mySensor, double echoL, double echoR, short index)
 {
+    /* Create file for dLi and dRi - measurement error calculation */
+    /*static QString saveFileName =
+            "/home/marekf/Dokumenty/pwr/mgr/build/build-sonar_app-Desktop_Qt_5_6_0_GCC_64bit-Debug/data/data_err.txt";
+    static QFile fileErr(saveFileName);
+    static QTextStream stream(&fileErr);
+    fileErr.open(QIODevice::ReadWrite | QIODevice::Text);
+    stream << echoL << '\t' << echoR << endl;*/
+    /* --- */
+
     double xTrian;
     double angle_tmp = acos(((echoL*echoL)+(SENSOR_DIST*SENSOR_DIST)-(echoR*echoR))/(2*echoL*SENSOR_DIST));
 
