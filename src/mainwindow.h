@@ -102,6 +102,8 @@ private:
     double          dystans_x_min;
     double          dystans_x_max;
     QString         serialBuffer;
+    QString         angleFileName;
+    QFile           angleFileMain;
     QStringList     bufferSplit;
 };
 

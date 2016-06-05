@@ -12,7 +12,7 @@ class Echo
 private:
     /* Funkcje prywatne klasy */
     short   calculateEchoStrength(quint16 echoStr, Sensor sensor);
-    void    echoTriangulation(Sensor mySensor, double echoL, double echoR, short index);
+    void    echoTriangulation(Sensor mySensor, double echoL, double echoR, short index, QFile *angleFile2);
 
     /* Zmienne prywatne */
     unsigned int    echo_start;
@@ -48,7 +48,7 @@ public:
     void    restoreToDefaultEcho();
     void    processSignal(Sensor mySensor, quint16 adc, quint16 x, int threshold);
     void    deleteResults();
-    double* calculateDetectionPoints(Sensor mySensor, double adjL, double adjR);
+    double* calculateDetectionPoints(Sensor mySensor, double adjL, double adjR, QFile *angleFile);
     double  getYmax();
     double  getXmin();
     double  getXmax();

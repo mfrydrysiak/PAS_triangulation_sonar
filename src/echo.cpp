@@ -5,9 +5,16 @@
 
 #define SENSOR_OFFSET   0.01175
 #define SENSOR_DIST     0.0235
-//#define SENSOR_OFFSET   0.01215
-//#define SENSOR_DIST     0.0243
+
+//#define SENSOR_OFFSET   ((0.0235+0.0003188793679592748)/2)
+//#define SENSOR_DIST     (0.0235+0.0003188793679592748)
+
+//#define SENSOR_OFFSET   ((0.0235+0.002003642308493)/2)
+//#define SENSOR_DIST     (0.0235+0.002003642308493)
+
 #define ALG1_DIST       0.01
+#define SAMPLE_PERIOD   0.00001
+//#define SAMPLE_PERIOD   0.000025
 #define PI              3.14159265
 
 Echo::Echo()
@@ -76,7 +83,7 @@ void Echo::processSignal(Sensor mySensor, quint16 adc, quint16 x, int threshold)
     }
 }
 
-double* Echo::calculateDetectionPoints(Sensor mySensor, double adjL, double adjR)
+double* Echo::calculateDetectionPoints(Sensor mySensor, double adjL, double adjR, QFile *angleFile)
 {
     double dystans[objNum];
     resultsXY = new double[(objNum*2)];
@@ -121,21 +128,21 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, double adjL, double adjR
 
         if (mySensor.wybrany_czujnik == Sensor::lewy) {
             if (mySensor.interpolation == true) {
-                dystans[echoIndex] = ((adjL*(dt*0.00001))/2) + ((adjL*((1-genOffsetInterpol)*0.00001))/2)
-                        - ((adjL*((1-detOffsetInterpol[echoIndex])*0.00001))/2);
+                dystans[echoIndex] = ((adjL*(dt*SAMPLE_PERIOD))/2) + ((adjL*((1-genOffsetInterpol)*SAMPLE_PERIOD))/2)
+                        - ((adjL*((1-detOffsetInterpol[echoIndex])*SAMPLE_PERIOD))/2);
                 stream << dystans[echoIndex] << '\t';
             }
             else
-                dystans[echoIndex] = (adjL*(dt*0.00001))/2;
+                dystans[echoIndex] = (adjL*(dt*SAMPLE_PERIOD))/2;
         }
         else
             if (mySensor.interpolation == true) {
-                dystans[echoIndex] = ((adjR*(dt*0.00001))/2) + ((adjR*((1-genOffsetInterpol)*0.00001))/2)
-                        - ((adjR*((1-detOffsetInterpol[echoIndex])*0.00001))/2);
+                dystans[echoIndex] = ((adjR*(dt*SAMPLE_PERIOD))/2) + ((adjR*((1-genOffsetInterpol)*SAMPLE_PERIOD))/2)
+                        - ((adjR*((1-detOffsetInterpol[echoIndex])*SAMPLE_PERIOD))/2);
                 stream << dystans[echoIndex] << endl;
             }
             else
-                dystans[echoIndex] = (adjR*(dt*0.00001))/2;
+                dystans[echoIndex] = (adjR*(dt*SAMPLE_PERIOD))/2;
     }
 
     /* Algorithm 1 - accept neighbours */
@@ -162,9 +169,9 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, double adjL, double adjR
                     if (abs(detDistanceAlg1_right[j] - detDistanceAlg1_left[k]) < mySensor.alg1_radius) {
 
                         if ((mySensor.algorithm == Sensor::triangulation || mySensor.algorithm == Sensor::alg1_and_trian)
-                                && (detDistanceAlg1_leftEchoStrength[index_alg1]  >= 2)
-                                && (detDistanceAlg1_rightEchoStrength[index_alg1] >= 2) ) {
-                            echoTriangulation(mySensor, detDistanceAlg1_left[k], detDistanceAlg1_right[j], index_trian);
+                                && (detDistanceAlg1_leftEchoStrength[index_alg1]  >= 3)
+                                && (detDistanceAlg1_rightEchoStrength[index_alg1] >= 3) ) {
+                            echoTriangulation(mySensor, detDistanceAlg1_left[k], detDistanceAlg1_right[j], index_trian, angleFile);
                             index_trian++;
                         }
 
@@ -202,7 +209,7 @@ double* Echo::calculateDetectionPoints(Sensor mySensor, double adjL, double adjR
     return resultsXY;
 }
 
-void Echo::echoTriangulation(Sensor mySensor, double echoL, double echoR, short index)
+void Echo::echoTriangulation(Sensor mySensor, double echoL, double echoR, short index, QFile *angleFile2)
 {
     /* Create file for dLi and dRi - measurement error calculation */
     /*static QString saveFileName =
@@ -213,17 +220,29 @@ void Echo::echoTriangulation(Sensor mySensor, double echoL, double echoR, short 
     stream << echoL << '\t' << echoR << endl;*/
     /* --- */
 
-    double xTrian;
-    double angle_tmp = acos(((echoL*echoL)+(SENSOR_DIST*SENSOR_DIST)-(echoR*echoR))/(2*echoL*SENSOR_DIST));
+    /*double angle_tmp = acos(((echoL*echoL)+(SENSOR_DIST*SENSOR_DIST)-(echoR*echoR))/(2*echoL*SENSOR_DIST));
 
     if (angle_tmp > (PI/2))
         xTrian = (1/(2*SENSOR_DIST))*((echoL*echoL)-(echoR*echoR)-(SENSOR_DIST*SENSOR_DIST));
     else
-        xTrian = (1/(2*SENSOR_DIST))*((echoL*echoL)-(echoR*echoR)+(SENSOR_DIST*SENSOR_DIST));
+        xTrian = (1/(2*SENSOR_DIST))*((echoL*echoL)-(echoR*echoR)+(SENSOR_DIST*SENSOR_DIST));*/
 
+    double xTrian = ((echoL*echoL)-(echoR*echoR)+(SENSOR_DIST*SENSOR_DIST))/(2*SENSOR_DIST);
     double yTrian = sqrt((echoL*echoL)-(xTrian*xTrian));
+
+    double theta_local = -atan(xTrian/yTrian);
+    double theta_local_saveDeg = 180*theta_local/PI;
+
     double theta = (mySensor.angle*PI/180);
-    //int theta = 0;
+    QTextStream stream2angleFile(angleFile2);
+    (*angleFile2).open(QIODevice::ReadWrite | QIODevice::Text);
+
+    stream2angleFile << mySensor.angle << '\t' <<
+                        mySensor.angle << '\t' <<
+                        theta_local_saveDeg << '\t' <<
+                        echoL << '\t' << echoR << '\t' << endl;
+
+
     double mRot[3][3] = { { cos(theta), sin(theta), SENSOR_OFFSET*(1-cos(theta))},
                           {-sin(theta), cos(theta), SENSOR_OFFSET*sin(theta)},
                           { 0,          0,          1} };
@@ -280,8 +299,10 @@ short Echo::calculateEchoStrength(quint16 echoStr, Sensor sensor)
             if (echoStr == 0)
               return 0;
             else if (echoStr < 35)
+            //else if (echoStr < 13)
                 return 1;
             else if (echoStr < 70)
+            //else if (echoStr < 28)
                 return 2;
             else
                 return 3;
@@ -290,8 +311,10 @@ short Echo::calculateEchoStrength(quint16 echoStr, Sensor sensor)
             if (echoStr == 0)
              return 0;
             else if (echoStr < 30)
+            //else if (echoStr < 12)
              return 1;
             else if (echoStr < 60)
+            //else if (echoStr < 24)
              return 2;
             else
              return 3;

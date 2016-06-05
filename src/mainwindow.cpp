@@ -17,6 +17,7 @@
 
 #define MAX_DATA        800
 #define SILENCE_SIGNAL  160
+//#define SILENCE_SIGNAL  200
 #define PI              3.14159265
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -305,6 +306,11 @@ void MainWindow::on_loadBtn_clicked()
                 "Text file (*txt)");
     QFile fileToLoad(fileName);
 
+    QDateTime dateQt = dateQt.currentDateTime();
+    QString dateStr = dateQt.toString("hh:mm:ss");
+    angleFileName = "/home/marekf/Dokumenty/pwr/mgr/build/build-sonar_app-Desktop_Qt_5_6_0_GCC_64bit-Debug/data/angle_hist_" + dateStr + ".txt";
+    angleFileMain.setFileName(angleFileName);
+
     Echo echo2;
     QString x_str, adc_str, angle_str;
     quint16 x_tmp, adc_tmp;
@@ -383,7 +389,7 @@ void MainWindow::drawDataOnMap(Echo *echo)
     ui->sonarMap->graph(3)->setLineStyle(QCPGraph::lsNone);
 
     short detObjNum = echo->getNumberOfObjects();
-    double *detectionPoints = echo->calculateDetectionPoints(mbSonar, ui->doubleSpinBox_calibLeft->value(), ui->doubleSpinBox_calibRight->value());
+    double *detectionPoints = echo->calculateDetectionPoints(mbSonar, ui->doubleSpinBox_calibLeft->value(), ui->doubleSpinBox_calibRight->value(), &angleFileMain);
 
     if (dystans_y_max < echo->getYmax())
         dystans_y_max = echo->getYmax();
@@ -402,12 +408,16 @@ void MainWindow::drawDataOnMap(Echo *echo)
         {
             if (mbSonar.wybrany_czujnik == Sensor::lewy) {
                 ui->sonarMap->graph(0)->addData(detectionPoints[echoNum], detectionPoints[echoNum + 1]);
+                ui->lineEditX->setText(QString::number(detectionPoints[echoNum]));
+                ui->lineEditY->setText(QString::number(detectionPoints[echoNum+1]));
                 /*double ustawione = ui->doubleSpinBox_calibLeft->value();
                 double calib = (0.5*ustawione)/detectionPoints[echoNum + 1];
                 QMessageBox::information(this, "calibraiton", QString::number(detectionPoints[echoNum + 1]));*/
             }
             else {
                 ui->sonarMap->graph(1)->addData(detectionPoints[echoNum], detectionPoints[echoNum + 1]);
+                ui->lineEditX->setText(QString::number(detectionPoints[echoNum]));
+                ui->lineEditY->setText(QString::number(detectionPoints[echoNum+1]));
                 /*double ustawione = ui->doubleSpinBox_calibRight->value();
                 double calib = (0.5*ustawione)/detectionPoints[echoNum + 1];
                 QMessageBox::information(this, "calibraiton", QString::number(detectionPoints[echoNum + 1]));*/
@@ -578,6 +588,13 @@ void MainWindow::on_scanBtn_clicked()
         QMessageBox::critical(this, "Error", "No sensor has been chosen!");
     else
     {
+        /* Create a file for real and measured angles - error calculations */
+        QDateTime dateQt = dateQt.currentDateTime();
+        QString dateStr = dateQt.toString("hh:mm:ss");
+        angleFileName = "/home/marekf/Dokumenty/pwr/mgr/build/build-sonar_app-Desktop_Qt_5_6_0_GCC_64bit-Debug/data/angle" + dateStr + ".txt";
+        angleFileMain.setFileName(angleFileName);
+        /* --- */
+
         currentMeasurementType = scan;
         mbSonar.currentFilter = 0;
         ui->sonarMap->graph(0)->clearData();
